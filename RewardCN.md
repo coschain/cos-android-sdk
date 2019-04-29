@@ -14,7 +14,7 @@
 ### 1.根据 cosd 的[grpc接口文件](https://github.com/coschain/contentos-go/blob/master/rpc/pb/grpc.proto)生成访问API列表
 ### 2.SDK需要完成本地组装各种类型transaction并且签名
 ### 3.需要能够生成公私钥，本地保存，导入
-### 4.基本的操作界面示例包含
+### 4.基本的操作界面示例包含，参考[网页版本wallet](https://testwallet.contentos.io/#/) 和 [Explorer](https://explorer.contentos.io/)
 	1.创建公私钥对，通过账号名私钥导入账号
 	2.按时间顺序查看post列表
 	3.发起转账
