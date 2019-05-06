@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+package prototype;
+
+option go_package = "github.com/coschain/contentos-go/prototype";
+option java_package = "io.contentos.android.sdk.prototype";
+
+import "prototype/type.proto";
+
+message account_create_operation{
+    coin fee = 1;
+    account_name creator = 2;
+    account_name new_account_name = 3;
+    public_key_type owner = 4;
+    string json_metadata = 8;
+}
+
+message transfer_operation{
+    account_name from = 1;
+    account_name to = 2;
+    coin amount = 3;
+    string memo = 4;
+}
+
+message transfer_to_vesting_operation{
+    account_name from = 1;
+    account_name to = 2;
+    coin amount = 3;
+}
+
+message vote_operation{
+    account_name voter = 1;
+    uint64 idx = 3 [jstype = JS_STRING];
+}
+
+message bp_register_operation{
+    account_name owner = 1;
+    string url = 2;
+    string desc = 3;
+    public_key_type block_signing_key = 4;
+    chain_properties  props = 5;
+}
+
+message bp_unregister_operation{
+    account_name owner = 1;
+}
+
+message bp_vote_operation{
+    account_name voter = 1;
+    account_name witness = 2;
+    bool cancel = 3;
+}
+
+message follow_operation{
+    account_name account = 1;
+    account_name f_account = 2;
+    bool cancel = 3;
+}
+
+message contract_deploy_operation{
+    account_name owner = 1;
+    string contract = 2;
+    string abi = 3;
+    bytes  code = 4;
+}
+
+message contract_apply_operation{
+    account_name caller = 1;          // who apply this op
+    account_name owner = 2;         // who owner this contract
+    string contract = 3;            // contract name
+    string method = 4;              // call which method
+    string params = 5;              // param list, encoded as a single json string. e.g. '[]' or '["hello", 3, true]'
+    coin   amount = 6;              // cos-coin send to the contract
+    coin   gas = 7;                 // max permit gas cost when apply
+}
+
+message internal_contract_apply_operation{
+    account_name from_caller = 1;       // caller of the calling contract
+    account_name from_owner = 2;        // owner of the calling contract
+    string from_contract = 3;           // name of the calling contract
+    string from_method = 4;             // method of the calling contract
+    account_name to_owner = 5;          // owner of the called contract
+    string to_contract = 6;             // name of the called contract
+    string to_method = 7;               // method of the called contract
+    bytes params = 8;                   // parameters encoded by internal serialization protocol between contract VM & host
+    coin amount = 9;                    // amount of coins to transfer from caller contract to called contract
+    coin gas = 10;                      // max gas cost for this operation
+}
+
+message post_operation{
+    uint64 uuid             = 1 [jstype = JS_STRING];
+    account_name owner      = 2;
+    string title            = 3;
+    string content          = 4;
+    repeated string tags    = 5;
+    repeated beneficiary_route_type beneficiaries = 6;
+}
+
+message reply_operation{
+    uint64 uuid             = 1 [jstype = JS_STRING];
+    account_name owner      = 2;
+    string content          = 3;
+    uint64 parent_uuid      = 4 [jstype = JS_STRING];
+    repeated beneficiary_route_type beneficiaries = 6;
+}
+
+message claim_all_operation {
+    account_name account = 1;
+}
+
+message claim_operation {
+    account_name account = 1;
+    uint64 amount = 2;
+}
+
+message report_operation {
+    enum tag {
+        CHILD_PORNOGRAPHY = 0;
+        RACISM = 1;
+        REACTIONARY = 2;
+        PLAGIARISM = 3;
+        SLANDER = 4;
+        FALSE_PROPAGANDA = 5;
+        PORNOGRAPHY = 6;
+    }
+    account_name reporter = 1;
+    uint64 reported = 2;
+    repeated tag report_tag = 3;
+    bool is_arbitration = 4;
+    bool is_approved = 5;
+}
+
+message convert_vesting_operation {
+    account_name from = 1;
+    vest amount = 2;
+}

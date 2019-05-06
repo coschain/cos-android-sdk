@@ -8,7 +8,11 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.4.0'
-        
+
+        // for auto-code-generation from .proto files
+        // FIXME: use newer version asap coz v0.8.8 triggers build warning due to https://github.com/google/protobuf-gradle-plugin/issues/295.
+        classpath "com.google.protobuf:protobuf-gradle-plugin:0.8.8"
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }

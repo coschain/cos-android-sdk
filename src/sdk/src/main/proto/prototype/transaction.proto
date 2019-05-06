@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package prototype;
+
+option go_package = "github.com/coschain/contentos-go/prototype";
+option java_package = "io.contentos.android.sdk.prototype";
+
+import "prototype/type.proto";
+import "prototype/operation.proto";
+
+message operation{
+    oneof op{
+        account_create_operation op1 = 1;
+        transfer_operation op2 = 2;
+        bp_register_operation op3 = 3;
+        bp_unregister_operation op4 = 4;
+        bp_vote_operation op5 = 5;
+        post_operation op6 = 6;
+        reply_operation op7 = 7;
+        follow_operation op8 = 8;
+        vote_operation op9 = 9;
+        transfer_to_vesting_operation op10 = 10;
+        claim_operation op11 = 11;
+        claim_all_operation op12 = 12;
+        contract_deploy_operation op13 = 13;
+        contract_apply_operation op14 = 14;
+        report_operation op15 = 15;
+        convert_vesting_operation op16 = 16;
+    }
+}
+
+// transaction
+message transaction{
+    uint32 ref_block_num = 1;
+    uint32 ref_block_prefix = 2;
+    time_point_sec expiration = 3;
+    repeated operation operations = 4;
+}
+
+message signed_transaction{
+    transaction trx = 1;
+    signature_type signature = 2;
+}
+
+message operation_receipt_with_info{
+    uint32 status = 1;
+    uint64 gas_usage = 5;
+    string vm_console = 6;
+}
+
+message operation_receipt{
+    uint32 status = 1;
+}
+
+message transaction_receipt{
+    uint32 status = 1;
+    uint64 total_gas_usage = 2;
+    repeated operation_receipt op_results = 3;
+}
+
+message transaction_receipt_with_info{
+    uint32 status = 1;
+    uint64 total_gas_usage = 2;
+    string error_info = 3;
+    repeated operation_receipt_with_info op_results = 4;
+}
+
+message estimate_trx_result{
+    signed_transaction sig_trx = 1;
+    transaction_receipt_with_info receipt = 2;
+}
+
+message transaction_wrapper{
+    signed_transaction sig_trx = 1;
+    transaction_receipt invoice = 2;
+}
+
+// block
+message block_header{
+    sha256 previous = 1;
+    time_point_sec timestamp = 2;
+    account_name witness = 3;
+    sha256 transaction_merkle_root = 4;
+}
+
+message signed_block_header{
+    block_header header = 1;
+    signature_type witness_signature = 2;
+}
+
+message signed_block{
+    signed_block_header signed_header = 1;
+    repeated transaction_wrapper transactions = 2;
+}
+
+message empty_signed_block{
+    signed_block_header signed_header = 1;
+    uint32 trx_count = 2;
+}

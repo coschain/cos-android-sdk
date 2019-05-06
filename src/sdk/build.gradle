@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.google.protobuf'
 
 android {
     compileSdkVersion 28
@@ -23,11 +24,37 @@ android {
 
 }
 
+// for plugin: 'com.google.protobuf'. see example at
+// https://github.com/grpc/grpc-java/blob/master/examples/android/helloworld/app/build.gradle
+protobuf {
+    protoc { artifact = 'com.google.protobuf:protoc:3.7.1' }
+    plugins {
+        javalite { artifact = "com.google.protobuf:protoc-gen-javalite:3.0.0" }
+        grpc { artifact = 'io.grpc:protoc-gen-grpc-java:1.20.0'
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                javalite {}
+                grpc {
+                    option 'lite' }
+            }
+        }
+    }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-
     implementation 'com.android.support:appcompat-v7:28.0.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    // gRPC dependencies. see example at
+    // https://github.com/grpc/grpc-java/blob/master/examples/android/helloworld/app/build.gradle
+    implementation 'io.grpc:grpc-okhttp:1.20.0'
+    implementation 'io.grpc:grpc-protobuf-lite:1.20.0'
+    implementation 'io.grpc:grpc-stub:1.20.0'
+    implementation 'javax.annotation:javax.annotation-api:1.2'
 }

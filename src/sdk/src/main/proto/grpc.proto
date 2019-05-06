@@ -1,0 +1,495 @@
+syntax = "proto3";
+
+package grpcpb;
+
+option go_package = "github.com/coschain/contentos-go/grpcpb";
+option java_package = "io.contentos.android.sdk.rpc";
+
+import "prototype/type.proto";
+import "prototype/multi_id.proto";
+import "prototype/transaction.proto";
+
+
+service ApiService {
+    rpc QueryTableContent (GetTableContentRequest) returns (TableContentResponse) {
+    }
+
+    rpc GetAccountByName (GetAccountByNameRequest) returns (AccountResponse) {
+    }
+
+    rpc GetAccountRewardByName (GetAccountRewardByNameRequest) returns (AccountRewardResponse) {
+    }
+
+    rpc GetAccountCashout (GetAccountCashoutRequest) returns (AccountCashoutResponse) {
+    }
+
+    rpc GetBlockCashout (GetBlockCashoutRequest) returns (BlockCashoutResponse) {
+
+    }
+
+    rpc GetFollowerListByName (GetFollowerListByNameRequest) returns (GetFollowerListByNameResponse) {
+    }
+
+    rpc GetFollowingListByName (GetFollowingListByNameRequest) returns (GetFollowingListByNameResponse) {
+    }
+
+    rpc GetFollowCountByName (GetFollowCountByNameRequest) returns (GetFollowCountByNameResponse) {
+    }
+
+    rpc GetWitnessList (GetWitnessListRequest) returns (GetWitnessListResponse) {
+    }
+
+    rpc GetPostListByCreated (GetPostListByCreatedRequest) returns (GetPostListByCreatedResponse) {
+    }
+
+    rpc GetReplyListByPostId (GetReplyListByPostIdRequest) returns (GetReplyListByPostIdResponse) {
+    }
+
+    rpc GetBlockTransactionsByNum (GetBlockTransactionsByNumRequest) returns (GetBlockTransactionsByNumResponse) {
+    }
+
+    rpc GetChainState (NonParamsRequest) returns (GetChainStateResponse) {
+    }
+
+    rpc GetStatisticsInfo (NonParamsRequest) returns (GetStatResponse) {
+    }
+
+    rpc BroadcastTrx (BroadcastTrxRequest) returns (BroadcastTrxResponse) {
+    }
+
+    rpc GetBlockList (GetBlockListRequest) returns (GetBlockListResponse) {
+    }
+
+    rpc GetSignedBlock (GetSignedBlockRequest)  returns (GetSignedBlockResponse) {
+    }
+
+    rpc GetAccountListByBalance (GetAccountListByBalanceRequest) returns (GetAccountListResponse) {
+    }
+
+    rpc GetDailyTotalTrxInfo  (GetDailyTotalTrxRequest) returns (GetDailyTotalTrxResponse) {
+    }
+
+    rpc GetTrxInfoById (GetTrxInfoByIdRequest) returns (GetTrxInfoByIdResponse) {
+    }
+
+    rpc GetTrxListByTime (GetTrxListByTimeRequest) returns (GetTrxListByTimeResponse) {
+    }
+
+    rpc GetPostListByCreateTime (GetPostListByCreateTimeRequest) returns (GetPostListByCreateTimeResponse) {
+    }
+
+    rpc GetPostListByName (GetPostListByNameRequest) returns (GetPostListByCreateTimeResponse){
+    }
+
+    rpc TrxStatByHour (TrxStatByHourRequest) returns (TrxStatByHourResponse) {
+    }
+
+    rpc GetUserTrxListByTime (GetUserTrxListByTimeRequest) returns (GetUserTrxListByTimeResponse) {
+    }
+
+    rpc GetPostInfoById (GetPostInfoByIdRequest) returns (GetPostInfoByIdResponse) {
+    }
+
+    rpc GetContractInfo (GetContractInfoRequest) returns (GetContractInfoResponse) {
+    }
+    
+    rpc GetBlkIsIrreversibleByTxId (GetBlkIsIrreversibleByTxIdRequest) returns (GetBlkIsIrreversibleByTxIdResponse) {
+    }
+
+    rpc GetAccountListByCreTime (GetAccountListByCreTimeRequest) returns (GetAccountListResponse) {
+    }
+}
+
+
+message GetTableContentRequest {
+    string owner = 1;
+    string contract = 2;
+    string table = 3;
+    string field = 4;
+    string begin = 5;
+    uint32 count = 6;
+    bool   reverse = 7;
+}
+
+message TableContentResponse {
+    string table_content = 1;
+}
+
+message GetAccountByNameRequest {
+    prototype.account_name account_name = 1;
+}
+
+message GetAccountCashoutRequest{
+    prototype.account_name account_name = 1;
+    uint64 post_id =  2;
+}
+
+message AccountCashoutResponse {
+    prototype.account_name account_name = 1;
+    prototype.vest reward = 2;
+}
+
+message GetBlockCashoutRequest {
+    uint64 block_height = 1;
+}
+
+message BlockCashoutResponse {
+    repeated AccountCashoutResponse cashout_list = 1;
+}
+
+message GetAccountRewardByNameRequest{
+    prototype.account_name account_name = 1;
+}
+
+message AccountRewardResponse {
+    prototype.account_name account_name = 1;
+    prototype.vest reward = 2;
+}
+
+message AccountInfo {
+    prototype.account_name                  account_name    = 1;
+    prototype.coin                          coin            = 2;
+    prototype.vest                          vest            = 3;
+    prototype.public_key_type               public_key      = 4;
+    prototype.time_point_sec                created_time    = 5;
+    WitnessResponse                         witness         = 6;
+    uint32                                  post_count      = 7;
+    uint32                                  follower_count    = 8;
+    uint32                                  following_count   = 9;
+    uint32                                  trx_count        = 10;
+    uint32                                  vote_power       = 11;
+}
+
+message AccountResponse {
+    AccountInfo info = 1;
+    ChainState  state = 2;
+}
+
+message GetFollowerListByNameRequest {
+    prototype.follower_created_order    start = 1;
+    prototype.follower_created_order    end   = 2;
+    uint32                              limit = 3;
+    prototype.follower_created_order    last_order = 4;
+}
+
+message FollowerListInfo {
+    AccountResponse                     account = 1;
+    prototype.follower_created_order    create_order = 2;
+}
+
+message GetFollowerListByNameResponse {
+    repeated FollowerListInfo follower_list = 1;
+}
+
+message GetFollowingListByNameRequest {
+    prototype.following_created_order   start = 1;
+    prototype.following_created_order   end   = 2;
+    uint32                              limit = 3;
+    prototype.following_created_order   last_order = 4;
+}
+
+message FollowingListInfo {
+    AccountResponse                    account = 1;
+    prototype.following_created_order  create_order = 2;
+}
+
+
+message GetFollowingListByNameResponse {
+    repeated FollowingListInfo following_list = 1;
+}
+
+message GetFollowCountByNameRequest {
+    prototype.account_name account_name = 1;
+}
+
+message GetFollowCountByNameResponse {
+    uint32      fer_cnt     = 1;
+    uint32      fing_cnt    = 2;
+}
+
+message WitnessResponse {
+    prototype.account_name             owner                           = 1;
+    prototype.time_point_sec           created_time                    = 3;
+    string                             url                             = 4;
+    uint32                             last_confirmed_block_num        = 5;
+    uint32                             total_missed                    = 6;
+    uint64                             vote_count                      = 7;
+    prototype.public_key_type          signing_key                     = 8;
+    prototype.sha256                   last_work                       = 9;
+    uint32                             running_version                 = 2;
+}
+
+message GetWitnessListRequest {
+    prototype.account_name      start = 1;
+    uint32                      limit = 2;
+}
+
+message GetWitnessListResponse {
+    repeated WitnessResponse witness_list = 1;
+}
+
+message PostResponse {
+    uint64                                      post_id                 =      1 [jstype = JS_STRING];
+    string                                      category                =      2;
+    prototype.account_name                      parent_author           =      3;
+    prototype.account_name                      author                  =      5;
+    string                                      title                   =      7;
+    string                                      body                    =      8;
+    prototype.time_point_sec                    created                 =      11;
+    prototype.time_point_sec                    last_payout             =      13;
+    uint32                                      depth                   =      14;
+    uint32                                      children                =      15;
+    uint64                                      root_id                 =      16 [jstype = JS_STRING];
+    uint64                                      parent_id               =      17 [jstype = JS_STRING];
+    repeated string                             tags                    =      18;
+    repeated prototype.beneficiary_route_type   beneficiaries           =      19;
+    uint64                                      vote_cnt                =      20;
+    uint64                                      weighted_vp             =      21 [jstype = JS_STRING];
+    prototype.vest                              rewards                 =      22;
+    prototype.vest                              dapp_rewards            =      23;
+    uint64                                      cashout_interval        =      24;
+    prototype.vest                              global_rewards          =      25;
+    uint64                                      global_weighted_vp      =      26;
+}
+
+message GetPostListByCreatedRequest {
+    prototype.post_created_order    start = 1;
+    prototype.post_created_order    end   = 2;
+    uint32                          limit = 3;
+}
+
+message GetPostListByCreatedResponse {
+    repeated PostResponse post_list = 1;
+}
+
+message GetReplyListByPostIdRequest {
+    prototype.reply_created_order       start = 1;
+    prototype.reply_created_order       end   = 2;
+    uint32                              limit = 3;
+}
+
+message GetReplyListByPostIdResponse {
+    repeated PostResponse reply_list = 1;
+}
+
+message GetBlockTransactionsByNumRequest {
+    uint32          block_num   = 1;
+    uint32          start       = 2;
+    uint32          limit       = 3;
+}
+
+message GetBlockTransactionsByNumResponse {
+    repeated prototype.signed_transaction transactions = 1;
+}
+
+message GetChainStateResponse {
+    ChainState state = 1;
+}
+
+message GetStatResponse {
+    ChainState state = 1;
+    repeated int32 daily_trx_counts = 2;
+}
+
+message BroadcastTrxRequest {
+    prototype.signed_transaction transaction = 1;
+    bool only_deliver = 2;
+}
+
+message BroadcastTrxResponse {
+    prototype.transaction_receipt_with_info  invoice = 1;
+    uint32                          status  = 2;
+    string                          msg     = 3;
+}
+
+message NonParamsRequest {
+}
+
+message CallResponse {
+    string      result          = 1;
+    string      execute_err     = 2;
+    string      estimate_gas    = 3;
+}
+
+message ChainState {
+    uint64 last_irreversible_block_number = 1;
+    uint64 last_irreversible_block_time   = 2;
+    prototype.dynamic_properties            dgpo            = 3;
+}
+
+message GetBlockListRequest {
+    uint64     start            = 1;
+    uint64     end              = 2;
+    uint32     limit            = 3;
+}
+
+
+message BlockInfo {
+    prototype.time_point_sec     timestamp  = 1;
+    uint64                       block_height = 2 [jstype = JS_STRING];
+    uint32                       trx_count   = 3;
+    prototype.account_name       witness     = 4;
+    prototype.sha256             block_id    = 5;
+    prototype.sha256             pre_id      = 6;
+    uint32                       block_size  = 7;
+}
+
+message GetBlockListResponse {
+   repeated    BlockInfo   blocks = 1;
+}
+
+message GetSignedBlockRequest {
+    uint64    start        = 1;
+}
+
+message GetSignedBlockResponse {
+    prototype.signed_block  block = 1;
+}
+
+
+message GetAccountListByBalanceRequest {
+    prototype.coin   start     = 1;
+    prototype.coin   end       = 2;
+    AccountInfo  last_account = 3;
+    uint32           limit     = 4;
+}
+
+message GetAccountListResponse {
+    repeated AccountResponse list = 1;
+}
+
+
+message DailyTotalTrx {
+    prototype.time_point_sec     date               = 1;
+    uint64     count              = 2;
+}
+
+message GetDailyTotalTrxRequest {
+    prototype.time_point_sec     start              = 1;
+    prototype.time_point_sec     end                = 2;
+    DailyTotalTrx                last_info          = 3;
+    uint32                       limit              = 4;
+}
+
+message GetDailyTotalTrxResponse {
+    repeated  DailyTotalTrx   list   = 1;
+}
+
+message StatByHour {
+    uint32     hour               = 1;
+    uint32     count              = 2;
+}
+
+message TrxStatByHourRequest {
+    uint32 hours = 1;
+}
+
+message TrxStatByHourResponse {
+    repeated StatByHour stat = 1;
+}
+
+message TrxInfo {
+    prototype.sha256                trx_id     =1;
+    uint64                          block_height =  2;
+    prototype.transaction_wrapper   trx_wrap    = 3;
+    prototype.time_point_sec        block_time  = 4;
+    prototype.sha256                block_id    = 5;
+    bool                            blk_is_irreversible = 6;
+}
+
+message GetTrxInfoByIdRequest {
+    prototype.sha256      trx_id    = 1;
+}
+
+message GetTrxInfoByIdResponse {
+    TrxInfo             info        = 1;
+}
+
+
+message GetTrxListByTimeRequest {
+    prototype.time_point_sec     start     = 1;
+    prototype.time_point_sec     end       = 2;
+    uint32                       limit    = 3;
+    TrxInfo                  last_info   = 4;
+}
+
+message GetTrxListByTimeResponse {
+    repeated        TrxInfo     list  = 1;
+}
+
+message GetPostListByCreateTimeRequest {
+    prototype.time_point_sec     start      = 1;
+    prototype.time_point_sec     end        = 2;
+    PostResponse                 last_post  = 3;
+    uint32                        limit     = 4;
+}
+
+message GetPostListByCreateTimeResponse {
+    repeated PostResponse posted_list = 1;
+}
+
+message GetPostListByNameRequest {
+    prototype.user_post_create_order  start  = 1;
+    prototype.user_post_create_order  end    = 2;
+    PostResponse  last_post = 3;
+    uint32                         limit     = 4;
+}
+
+
+message GetUserTrxListByTimeRequest {
+    prototype.account_name     name    = 1;
+    prototype.time_point_sec   start   = 2;
+    prototype.time_point_sec   end     = 3;
+    TrxInfo                    last_trx = 4;
+    uint32                     limit     = 5;
+}
+
+message GetUserTrxListByTimeResponse {
+    repeated        TrxInfo     trx_list  = 1;
+}
+
+message VoterOfPost {
+    prototype.account_name     account_name    = 1;
+    uint64                     weighted_vp     = 2 [jstype = JS_STRING];
+
+}
+
+message GetPostInfoByIdRequest {
+    uint64     post_id   =      1 [jstype = JS_STRING];
+    uint32     voter_list_limit     =   2;
+    uint32     reply_list_limit     = 3;
+}
+
+message GetPostInfoByIdResponse {
+    PostResponse    post_info        = 1;
+    repeated        VoterOfPost voter_list = 2;
+    repeated        PostResponse  reply_list = 3;
+}
+
+message GetContractInfoRequest {
+    prototype.account_name     owner    = 1;
+    string     contract_name            = 2;
+    bool fetchAbi                       = 3;
+    bool fetchCode                      = 4;
+}
+
+message GetContractInfoResponse {
+    bool exist    = 1;
+    string abi    = 2;
+    bytes code    = 3;
+}
+
+message GetBlkIsIrreversibleByTxIdRequest {
+    prototype.sha256       trx_id  = 1;
+}
+
+message GetBlkIsIrreversibleByTxIdResponse {  
+    bool       result   = 1;
+}
+
+message GetAccountListByCreTimeRequest {
+    prototype.time_point_sec   start     = 1;
+    prototype.time_point_sec   end       = 2;
+    AccountInfo  last_account = 3;
+    uint32           limit     = 4;
+}

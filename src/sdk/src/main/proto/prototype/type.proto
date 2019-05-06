@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package prototype;
+
+option go_package = "github.com/coschain/contentos-go/prototype";
+option java_package = "io.contentos.android.sdk.prototype";
+
+message account_name{
+    string value = 1;
+}
+
+message chain_id{
+    uint32 value = 1;
+}
+
+message coin{
+    uint64 value = 1 [jstype = JS_STRING];
+}
+
+message vest{
+    uint64 value = 1 [jstype = JS_STRING];
+}
+
+message public_key_type{
+    bytes data = 1;
+}
+
+message private_key_type{
+    bytes data = 1;
+}
+
+//message authority{
+//    public_key_type key = 1;
+//}
+
+message time_point_sec{
+    uint32 utc_seconds = 1;
+}
+
+message signature_type{
+    bytes sig = 1;
+}
+
+message sha256{
+    bytes hash = 1;
+}
+
+message chain_properties{
+    coin account_creation_fee = 1;
+    uint32 maximum_block_size = 2;
+}
+
+message dynamic_properties {
+    int32                        id                            =      1;
+    prototype.sha256             head_block_id                 =      2;
+    uint64                       head_block_number             =      3;
+    uint32                       maximum_block_size            =      4;
+    prototype.coin               total_cos                     =      5;
+    prototype.time_point_sec     time                          =      6;
+    prototype.account_name       current_witness               =      7;
+    uint64                       irreversible_block_num        =      8;
+    uint32                       tps                           =      9;
+    prototype.vest               total_vesting_shares          =      10;
+    prototype.coin               current_supply                =      11;
+    uint32                       current_aslot                 =      12;
+    uint64   post_weighted_vps = 13;
+    prototype.vest     post_rewards = 14;
+    uint64   total_trx_cnt = 15;
+    uint64   total_post_cnt = 16;
+    uint64   total_user_cnt = 17;
+    uint32   max_tps = 18;
+    uint64   max_tps_block_num = 19 [jstype = JS_STRING] ;
+    uint32                       head_block_prefix             =      20;
+    prototype.vest     report_rewards = 21;
+    uint32   ith_year = 22;
+    prototype.vest   annual_budget = 23;
+    prototype.vest   annual_minted = 24;
+    prototype.vest   post_dapp_rewards = 25;
+    prototype.vest   voter_rewards = 26;
+    prototype.vest      reply_rewards = 27;
+    uint64   reply_weighted_vps = 28;
+    prototype.vest   reply_dapp_rewards = 29;
+}
+
+message internal_rewards_keeper {
+    int32 id = 1;
+    map<string, prototype.vest> rewards = 2;
+}
+
+message beneficiary_route_type{
+    account_name    name    = 1;
+    uint32          weight  = 2;
+}

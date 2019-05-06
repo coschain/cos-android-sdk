@@ -1,2 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.contentos.android.sdk" />
+    package="io.contentos.android.sdk" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+</manifest>
