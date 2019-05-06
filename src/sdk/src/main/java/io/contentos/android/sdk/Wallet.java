@@ -1,6 +1,7 @@
 package io.contentos.android.sdk;
 
 
+import io.contentos.android.sdk.encoding.WIF;
 import io.contentos.android.sdk.rpc.ApiServiceGrpc;
 import io.contentos.android.sdk.rpc.Grpc;
 import io.contentos.android.sdk.prototype.Type;
@@ -13,11 +14,16 @@ public class Wallet {
         ManagedChannel chn = ManagedChannelBuilder.forAddress("34.199.54.140", 8888).usePlaintext().build();
         ApiServiceGrpc.ApiServiceBlockingStub stub = ApiServiceGrpc.newBlockingStub(chn);
 
-        byte[] pk = stub.getAccountByName(
+//        byte[] pk = stub.getAccountByName(
+//                Grpc.GetAccountByNameRequest.newBuilder().setAccountName(
+//                        Type.account_name.newBuilder().setValue(who).build()
+//                ).build()
+//        ).getInfo().getPublicKey().getData().toByteArray();
+        return WIF.fromPublicKey(stub.getAccountByName(
                 Grpc.GetAccountByNameRequest.newBuilder().setAccountName(
                         Type.account_name.newBuilder().setValue(who).build()
                 ).build()
-        ).getInfo().getPublicKey().getData().toByteArray();
-        return pk.toString();
+        ).getInfo().getPublicKey());
+//        return pk.toString();
     }
 }
