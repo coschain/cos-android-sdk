@@ -35,7 +35,7 @@ public class WIF {
 
     static private String fromByteArray(byte[] data, Boolean addLeadingOne) {
         byte[] h = hash(data);
-        byte[] dataWithHash = new byte[data.length + 4];
+        byte[] dataWithHash = new byte[data.length + (addLeadingOne? 5:4)];
         int offset = 0;
         if (addLeadingOne) {
             dataWithHash[0] = 1;
