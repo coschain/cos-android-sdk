@@ -145,11 +145,6 @@ public class Key {
         byte[] rBytes = uintBytes(r);
         byte[] sBytes = uintBytes(s);
         byte[] signature = new byte[N_Bytes + N_Bytes + 1];
-
-        if (rBytes.length > N_Bytes || sBytes.length > N_Bytes) {
-            System.out.println("r:" + rBytes.length + ", s:" + sBytes.length);
-        }
-
         System.arraycopy(rBytes, 0, signature, 0, N_Bytes);
         System.arraycopy(sBytes, 0, signature, N_Bytes, N_Bytes);
         signature[N_Bytes + N_Bytes] = recovery;
