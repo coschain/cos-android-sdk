@@ -14,22 +14,22 @@ import io.contentos.android.sdk.prototype.Type;
 public class Key {
 
     // the chosen elliptic curve.
-    static private final String ECName = "secp256k1";
+    private static final String ECName = "secp256k1";
 
     // frequently used properties of the chosen curve.
-    static private final X9ECParameters ECParam = CustomNamedCurves.getByName(ECName);
-    static private final BigInteger N = ECParam.getN();
-    static private final int N_Bits = N.bitLength();
-    static private final int N_Bytes = (N_Bits + 7) / 8;
-    static private final BigInteger N_1 = N.subtract(BigInteger.ONE);
-    static private final BigInteger HalfN = N.shiftRight(1);
+    private static final X9ECParameters ECParam = CustomNamedCurves.getByName(ECName);
+    private static final BigInteger N = ECParam.getN();
+    private static final int N_Bits = N.bitLength();
+    private static final int N_Bytes = (N_Bits + 7) / 8;
+    private static final BigInteger N_1 = N.subtract(BigInteger.ONE);
+    private static final BigInteger HalfN = N.shiftRight(1);
 
 
     /**
      * Generate a new private key.
      * @return a private key.
      */
-    static public Type.private_key_type generate() {
+    public static Type.private_key_type generate() {
         // generate a random integer in range [1, N-1].
         BigInteger d = randInt(new SecureRandom());
         return Type.private_key_type.newBuilder().setData(
@@ -42,7 +42,7 @@ public class Key {
      * @param privateKey the private key.
      * @return public key of given private key.
      */
-    static public Type.public_key_type publicKeyOf(Type.private_key_type privateKey) {
+    public static Type.public_key_type publicKeyOf(Type.private_key_type privateKey) {
         // get the secret integer from private key bytes.
         BigInteger d = new BigInteger(1, privateKey.getData().toByteArray());
 
@@ -59,7 +59,7 @@ public class Key {
      * @param privateKey    the signer's private key.
      * @return  bytes of signature.
      */
-    static public byte[] signDigest(byte[] digest, Type.private_key_type privateKey) {
+    public static byte[] signDigest(byte[] digest, Type.private_key_type privateKey) {
         byte[] priv = privateKey.getData().toByteArray();
 
         // initialize a CSPRNG based on private key and digest.
@@ -157,7 +157,7 @@ public class Key {
      * @param privateKey    the signer's private key.
      * @return bytes of signature.
      */
-    static public byte[] signMessage(byte[] message, Type.private_key_type privateKey) {
+    public static byte[] signMessage(byte[] message, Type.private_key_type privateKey) {
         return signDigest(Hash.sha256(message), privateKey);
     }
 
@@ -168,7 +168,7 @@ public class Key {
      * @param publicKey     the public key of signer
      * @return  true if signature verification passed, otherwise false.
      */
-    static public Boolean verifyDigest(byte[] signature, byte[] digest, Type.public_key_type publicKey) {
+    public static boolean verifyDigest(byte[] signature, byte[] digest, Type.public_key_type publicKey) {
         // check signature size
         if (signature.length != N_Bytes * 2 + 1) {
             return false;
@@ -207,7 +207,7 @@ public class Key {
      * @param publicKey     the public key of signer
      * @return  true if signature verification passed, otherwise false.
      */
-    static public Boolean verifyMessage(byte[] signature, byte[] message, Type.public_key_type publicKey) {
+    public static boolean verifyMessage(byte[] signature, byte[] message, Type.public_key_type publicKey) {
         return verifyDigest(signature, Hash.sha256(message), publicKey);
     }
 
@@ -217,7 +217,7 @@ public class Key {
      * @param digest        the message digest
      * @return  signer's public key or null if recovery failed.
      */
-    static public Type.public_key_type publicKeyFromSignatureDigest(byte[] signature, byte[] digest) {
+    public static Type.public_key_type publicKeyFromSignatureDigest(byte[] signature, byte[] digest) {
         if (signature.length != N_Bytes * 2 + 1) {
             return null;
         }
@@ -258,12 +258,12 @@ public class Key {
      * @param message       the message data
      * @return  signer's public key or null if recovery failed.
      */
-    static public Type.public_key_type publicKeyFromSignatureMessage(byte[] signature, byte[] message) {
+    public static Type.public_key_type publicKeyFromSignatureMessage(byte[] signature, byte[] message) {
         return publicKeyFromSignatureDigest(signature, Hash.sha256(message));
     }
 
     // convert a hash value to a finite field integer.
-    static private BigInteger hashToInt(byte[] hash) {
+    private static BigInteger hashToInt(byte[] hash) {
         byte[] z = hash;
         if (hash.length > N_Bytes) {
             z = Arrays.copyOf(hash, N_Bytes);
@@ -277,7 +277,7 @@ public class Key {
     }
 
     // generate a finite field integer in range [1, N-1].
-    static private BigInteger randInt(Random rand) {
+    private static BigInteger randInt(Random rand) {
         byte[] randBytes = new byte[N_Bytes + 8];
         rand.nextBytes(randBytes);
         return new BigInteger(1, randBytes).mod(N_1).add(BigInteger.ONE);
@@ -285,7 +285,7 @@ public class Key {
 
     // return a N_Bytes-long byte array representing the given non-negative integer.
     // the byte array doesn't contain sign bit.
-    static private byte[] uintBytes(BigInteger n) {
+    private static byte[] uintBytes(BigInteger n) {
         byte[] bytes = n.toByteArray();
         if (bytes.length > N_Bytes) {
 

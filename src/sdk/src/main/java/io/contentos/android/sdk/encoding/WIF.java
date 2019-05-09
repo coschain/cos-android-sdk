@@ -7,17 +7,17 @@ import io.contentos.android.sdk.crypto.Hash;
 import io.contentos.android.sdk.prototype.Type;
 
 public class WIF {
-    static private final String PUBLIC_KEY_PREFIX = "COS";
+    private static final String PUBLIC_KEY_PREFIX = "COS";
 
-    static public String fromPublicKey(Type.public_key_type publicKey) {
+    public static String fromPublicKey(Type.public_key_type publicKey) {
         return PUBLIC_KEY_PREFIX + fromByteArray(publicKey.getData().toByteArray(), false);
     }
 
-    static public String fromPrivateKey(Type.private_key_type privateKey) {
+    public static String fromPrivateKey(Type.private_key_type privateKey) {
         return fromByteArray(privateKey.getData().toByteArray(), true);
     }
 
-    static public Type.public_key_type toPublicKey(String wif) {
+    public static Type.public_key_type toPublicKey(String wif) {
         if (!wif.startsWith(PUBLIC_KEY_PREFIX)) {
             throw new UnknownFormatConversionException("WIF string without public key prefix");
         }
@@ -27,13 +27,13 @@ public class WIF {
                 ).build();
     }
 
-    static public Type.private_key_type toPrivateKey(String wif) {
+    public static Type.private_key_type toPrivateKey(String wif) {
         return Type.private_key_type.newBuilder()
                 .setData(ByteString.copyFrom(toByteArray(wif, true)))
                 .build();
     }
 
-    static private String fromByteArray(byte[] data, Boolean addLeadingOne) {
+    private static String fromByteArray(byte[] data, Boolean addLeadingOne) {
         byte[] h = hash(data);
         byte[] dataWithHash = new byte[data.length + (addLeadingOne? 5:4)];
         int offset = 0;
@@ -46,7 +46,7 @@ public class WIF {
         return Base58.encode(dataWithHash);
     }
 
-    static private byte[] toByteArray(String wif, Boolean removeLeadingOne) {
+    private static byte[] toByteArray(String wif, Boolean removeLeadingOne) {
         byte[] dataWithHash = Base58.decode(wif);
         int offset = removeLeadingOne? 1:0;
         int minSize = removeLeadingOne? 5:4;
@@ -66,11 +66,11 @@ public class WIF {
         return Arrays.copyOfRange(dataWithHash, offset, hashOffset);
     }
 
-    static private byte[] hash(byte[] data, int offset, int size) {
+    private static byte[] hash(byte[] data, int offset, int size) {
         return Hash.sha256(Hash.sha256(data, offset, size));
     }
 
-    static private byte[] hash(byte[] data) {
+    private static byte[] hash(byte[] data) {
         return Hash.sha256(Hash.sha256(data));
     }
 }
