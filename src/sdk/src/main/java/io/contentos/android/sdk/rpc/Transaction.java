@@ -1,4 +1,4 @@
-package io.contentos.android.sdk.wallet;
+package io.contentos.android.sdk.rpc;
 
 import com.google.protobuf.ByteString;
 
@@ -12,12 +12,12 @@ import io.contentos.android.sdk.prototype.Transaction.transaction;
 import io.contentos.android.sdk.prototype.Transaction.signed_transaction;
 import io.contentos.android.sdk.prototype.Type;
 
-public class Transaction extends Operation.BaseResultFilter<operation, Transaction> {
+public class Transaction extends Operation.BaseResultFilter<operation, Operation.OperationCreator, Transaction> {
 
     private transaction.Builder trxBuilder = transaction.newBuilder();
 
     public Transaction() {
-        super(new Operation.OperationCreator());
+        super(new Operation.OperationCreator.Factory());
     }
 
     @Override
@@ -68,5 +68,12 @@ public class Transaction extends Operation.BaseResultFilter<operation, Transacti
 
     public signed_transaction sign(String wifPrivateKey, int chainId) {
         return sign(WIF.toPrivateKey(wifPrivateKey), chainId);
+    }
+
+
+    public static class Factory implements Operation.OperationProcessorFactory<Transaction, Transaction> {
+        public Transaction newInstance() {
+            return new Transaction();
+        }
     }
 }

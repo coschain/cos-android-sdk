@@ -1,4 +1,4 @@
-package io.contentos.android.sdk.wallet;
+package io.contentos.android.sdk.rpc;
 
 import com.google.protobuf.ByteString;
 
@@ -32,66 +32,70 @@ public class Operation {
         Result convertVesting(String account, long amount);
     }
 
-    public static abstract class BaseResultFilter<SrcType, DstType> implements OperationProcessor<DstType> {
+    public interface OperationProcessorFactory<Result, Processor extends OperationProcessor<Result>> {
+        Processor newInstance();
+    }
 
-        protected OperationProcessor<SrcType> upstream;
+    public static abstract class BaseResultFilter<SrcType, Upstream extends OperationProcessor<SrcType>, DstType> implements OperationProcessor<DstType> {
 
-        BaseResultFilter(OperationProcessor<SrcType> upstream) {
-            this.upstream = upstream;
+        protected OperationProcessorFactory<SrcType, Upstream> upstreamFactory;
+
+        BaseResultFilter(OperationProcessorFactory<SrcType, Upstream> upstreamFactory) {
+            this.upstreamFactory = upstreamFactory;
         }
 
         protected abstract DstType filterResult(SrcType src);
 
         public DstType accountCreate(String creator, String newAccount, long fee, Type.public_key_type publicKey, String jsonMeta){
-            return filterResult(upstream.accountCreate(creator, newAccount, fee, publicKey, jsonMeta));
+            return filterResult(upstreamFactory.newInstance().accountCreate(creator, newAccount, fee, publicKey, jsonMeta));
         }
 
         public DstType transfer(String from, String to, long amount, String memo){
-            return filterResult(upstream.transfer(from, to, amount, memo));
+            return filterResult(upstreamFactory.newInstance().transfer(from, to, amount, memo));
         }
 
         public DstType bpRegister(String owner, String url, String desc, Type.public_key_type signKey, Type.chain_properties props){
-            return filterResult(upstream.bpRegister(owner, url, desc, signKey, props));
+            return filterResult(upstreamFactory.newInstance().bpRegister(owner, url, desc, signKey, props));
         }
 
         public DstType bpUnregister(String owner){
-            return filterResult(upstream.bpUnregister(owner));
+            return filterResult(upstreamFactory.newInstance().bpUnregister(owner));
         }
 
         public DstType bpVote(String voter, String bp, boolean cancel){
-            return filterResult(upstream.bpVote(voter, bp, cancel));
+            return filterResult(upstreamFactory.newInstance().bpVote(voter, bp, cancel));
         }
 
         public DstType post(String author, String title, String content, List<String> tags, Map<String, Integer> beneficiaries){
-            return filterResult(upstream.post(author, title, content, tags, beneficiaries));
+            return filterResult(upstreamFactory.newInstance().post(author, title, content, tags, beneficiaries));
         }
 
         public DstType reply(long postId, String author, String content, Map<String, Integer> beneficiaries){
-            return filterResult(upstream.reply(postId, author, content, beneficiaries));
+            return filterResult(upstreamFactory.newInstance().reply(postId, author, content, beneficiaries));
         }
 
         public DstType follow(String follower, String followee){
-            return filterResult(upstream.follow(follower, followee));
+            return filterResult(upstreamFactory.newInstance().follow(follower, followee));
         }
 
         public DstType vote(String voter, long postId){
-            return filterResult(upstream.vote(voter, postId));
+            return filterResult(upstreamFactory.newInstance().vote(voter, postId));
         }
 
         public DstType transferToVesting(String from, String to, long amount){
-            return filterResult(upstream.transferToVesting(from, to, amount));
+            return filterResult(upstreamFactory.newInstance().transferToVesting(from, to, amount));
         }
 
         public DstType contractDeploy(String owner, String contract, String abi, byte[] code){
-            return filterResult(upstream.contractDeploy(owner, contract, abi, code));
+            return filterResult(upstreamFactory.newInstance().contractDeploy(owner, contract, abi, code));
         }
 
         public DstType contractApply(String caller, String owner, String contract, String method, String params, long coins, long gas){
-            return filterResult(upstream.contractApply(caller, owner, contract, method, params, coins, gas));
+            return filterResult(upstreamFactory.newInstance().contractApply(caller, owner, contract, method, params, coins, gas));
         }
 
         public DstType convertVesting(String account, long amount){
-            return filterResult(upstream.convertVesting(account, amount));
+            return filterResult(upstreamFactory.newInstance().convertVesting(account, amount));
         }
     }
 
@@ -253,6 +257,11 @@ public class Operation {
             );
             return ByteBuffer.wrap(digest).order(ByteOrder.BIG_ENDIAN).getLong();
         }
-    }
 
+        public static class Factory implements OperationProcessorFactory<operation, OperationCreator> {
+            public OperationCreator newInstance() {
+                return new OperationCreator();
+            }
+        }
+    }
 }
