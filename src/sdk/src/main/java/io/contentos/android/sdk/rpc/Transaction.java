@@ -12,6 +12,17 @@ import io.contentos.android.sdk.prototype.Transaction.transaction;
 import io.contentos.android.sdk.prototype.Transaction.signed_transaction;
 import io.contentos.android.sdk.prototype.Type;
 
+/**
+ * Transaction is designed for easy transaction building and signing.
+ *
+ * <p>It implements {@link Operation.BaseResultFilter} for easy operation insertion. For example,
+ * to add a bunch of operations to the transaction, simply call
+ * <pre>
+ *     trx.accountCreate(...).transfer(...).post(...).reply(...)
+ * </pre>
+ *
+ * <p>See {@link Operation.OperationProcessor} for detailed operation parameters.
+ */
 public class Transaction extends Operation.BaseResultFilter<operation, Operation.OperationCreator, Transaction> {
 
     private transaction.Builder trxBuilder = transaction.newBuilder();
@@ -26,11 +37,21 @@ public class Transaction extends Operation.BaseResultFilter<operation, Operation
         return this;
     }
 
+    /**
+     * Set the expiration time stamp.
+     * @param utcSeconds UTC expiration time stamp in seconds
+     * @return {@code this}
+     */
     public Transaction setExpiration(int utcSeconds) {
         trxBuilder.setExpiration(Type.time_point_sec.newBuilder().setUtcSeconds(utcSeconds));
         return this;
     }
 
+    /**
+     * Set the reference block information.
+     * @param blockId   the reference block id
+     * @return {@code this}
+     */
     public Transaction setRefBlock(byte[] blockId) {
         final long tapos_max_blocks = 0x800;
 
@@ -44,6 +65,17 @@ public class Transaction extends Operation.BaseResultFilter<operation, Operation
         return this;
     }
 
+    /**
+     * Set expiration time stamp and reference block based on block chain properties.
+     * Expiration time will be set to 30 seconds later than the head block's time stamp, and
+     * reference block will be set to the head block.
+     *
+     * @param props the block chain properties
+     * @return {@code this}
+     *
+     * @see Transaction#setExpiration
+     * @see Transaction#setRefBlock
+     */
     public Transaction setDynamicGlobalProps(Type.dynamic_properties props) {
         final int expiration = 30;
         setRefBlock(props.getHeadBlockId().getHash().toByteArray());
@@ -51,6 +83,12 @@ public class Transaction extends Operation.BaseResultFilter<operation, Operation
         return this;
     }
 
+    /**
+     * Create a signed transaction.
+     * @param privateKey    signer's private key
+     * @param chainId       block chain network id
+     * @return a signed transaction.
+     */
     public signed_transaction sign(Type.private_key_type privateKey, int chainId) {
         transaction trx = trxBuilder.build();
         byte[] bytes = new byte[4 + trx.getSerializedSize()];
@@ -66,11 +104,20 @@ public class Transaction extends Operation.BaseResultFilter<operation, Operation
                 ).build();
     }
 
+    /**
+     * Create a signed transaction.
+     * @param wifPrivateKey signer's private key in WIF encoding
+     * @param chainId       block chain network id
+     * @return a signed transaction.
+     */
     public signed_transaction sign(String wifPrivateKey, int chainId) {
         return sign(WIF.toPrivateKey(wifPrivateKey), chainId);
     }
 
 
+    /**
+     * Factory class of {@link Transaction}
+     */
     public static class Factory implements Operation.OperationProcessorFactory<Transaction, Transaction> {
         public Transaction newInstance() {
             return new Transaction();

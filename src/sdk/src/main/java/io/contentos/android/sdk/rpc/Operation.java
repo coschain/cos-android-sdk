@@ -16,34 +16,175 @@ import io.contentos.android.sdk.prototype.Operation.*;
 
 public class Operation {
 
+    /**
+     * Base interface for operation processing.
+     * @param <Result> the type of processing result
+     */
     public interface OperationProcessor<Result> {
+        /**
+         * Process an operation of account creation.
+         * @param creator       name of creator account
+         * @param newAccount    name of new account
+         * @param fee           number of tokens to be transferred from creator's balance to new account's vesting
+         * @param publicKey     public key of new account
+         * @param jsonMeta      meta data in JSON
+         * @return processing result
+         */
         Result accountCreate(String creator, String newAccount, long fee, Type.public_key_type publicKey, String jsonMeta);
+
+        /**
+         * Process an operation of token transfer.
+         * @param from      name of sender account
+         * @param to        name of receiver account
+         * @param amount    number of tokens
+         * @param memo      any memo text
+         * @return processing result
+         */
         Result transfer(String from, String to, long amount, String memo);
+
+        /**
+         * Process an operation of block-producer registration.
+         * @param owner     name of block-producer account
+         * @param url       URL of block-producer's website
+         * @param desc      description of block-producer
+         * @param signKey   public key for verification of signed blocks from this block-producer
+         * @param props     specific properties of this block-producer, {@code null} means the default
+         * @return processing result
+         */
         Result bpRegister(String owner, String url, String desc, Type.public_key_type signKey, Type.chain_properties props);
+
+        /**
+         * Process an operation of block-producer un-registration.
+         * @param owner     name of block-producer to unregister
+         * @return processing result
+         */
         Result bpUnregister(String owner);
+
+        /**
+         * Process an operation of block-producer voting.
+         * @param voter     name of voter account
+         * @param bp        name of block-producer account
+         * @param cancel    if set, revoke an earlier vote; otherwise, cast a vote
+         * @return processing result
+         */
         Result bpVote(String voter, String bp, boolean cancel);
+
+        /**
+         * Process an operation of article posting.
+         * @param author        name of author account
+         * @param title         title of the article
+         * @param content       content of the article
+         * @param tags          tags of the article
+         * @param beneficiaries beneficiaries of the article, represented as a map {account: weight}.
+         *                      unit of beneficiary weights is 0.01%.
+         * @return processing result
+         */
         Result post(String author, String title, String content, List<String> tags, Map<String, Integer> beneficiaries);
+
+        /**
+         * Process an operation of comment posting.
+         * @param postId        id of the post being commented
+         * @param author        name of commenting account
+         * @param content       content of the comment
+         * @param beneficiaries beneficiaries of the comment, @see {@link #post}
+         * @return processing result
+         */
         Result reply(long postId, String author, String content, Map<String, Integer> beneficiaries);
+
+        /**
+         * Process an operation of follow-ship creation.
+         * @param follower  name of follower account
+         * @param followee  name of account being followed
+         * @return processing result
+         */
         Result follow(String follower, String followee);
+
+        /**
+         * Process an operation of article up-voting.
+         * @param voter     name of voter account
+         * @param postId    id of post being up-voted
+         * @return processing result
+         */
         Result vote(String voter, long postId);
+
+        /**
+         * Process an operation of token-to-vesting conversion.
+         * @param from      name of token sender account
+         * @param to        name of vesting receiver account
+         * @param amount    number of tokens to convert
+         * @return processing result
+         */
         Result transferToVesting(String from, String to, long amount);
+
+        /**
+         * Process an operation of smart contract deployment.
+         * @param owner     name of account owning the contract
+         * @param contract  name of contract
+         * @param abi       ABI of contract
+         * @param code      code of contract
+         * @return processing result
+         */
         Result contractDeploy(String owner, String contract, String abi, byte[] code);
+
+        /**
+         * Process an operation of smart contract calling.
+         * @param caller    name of caller account
+         * @param owner     name of contract owner account
+         * @param contract  name of contract
+         * @param method    name of contract method
+         * @param params    parameters for contract method
+         * @param coins     number of tokens to transfer from caller's balance to the contract
+         * @param gas       maximum affordable gas
+         * @return processing result
+         */
         Result contractApply(String caller, String owner, String contract, String method, String params, long coins, long gas);
+
+        /**
+         * Process an operation of vesting-to-token conversion.
+         * @param account   name of account
+         * @param amount    number of vesting to convert
+         * @return processing result
+         */
         Result convertVesting(String account, long amount);
     }
 
+    /**
+     * Factory interface of {@link OperationProcessor}.
+     * @param <Result>      type of processing result of produced {@link OperationProcessor}
+     * @param <Processor>   type of produced {@link OperationProcessor}
+     */
     public interface OperationProcessorFactory<Result, Processor extends OperationProcessor<Result>> {
+        /**
+         * Produce a new instance of {@link OperationProcessor<Result>}
+         * @return a new instance of {@link OperationProcessor<Result>}
+         */
         Processor newInstance();
     }
 
+    /**
+     * Abstract basic class for operation processing filters.
+     * @param <SrcType>     type of upstream processor result
+     * @param <Upstream>    type of upstream processor
+     * @param <DstType>     type of filter result
+     */
     public static abstract class BaseResultFilter<SrcType, Upstream extends OperationProcessor<SrcType>, DstType> implements OperationProcessor<DstType> {
 
+        /**
+         * Factory instance for upstream processor creation.
+         */
         protected OperationProcessorFactory<SrcType, Upstream> upstreamFactory;
 
         BaseResultFilter(OperationProcessorFactory<SrcType, Upstream> upstreamFactory) {
             this.upstreamFactory = upstreamFactory;
         }
 
+        /**
+         * Convert upstream result to this filter's result.
+         * Derived filter classes should override this method to implement their processing logic.
+         *
+         * @param src result of upstream processor
+         * @return filtered result
+         */
         protected abstract DstType filterResult(SrcType src);
 
         public DstType accountCreate(String creator, String newAccount, long fee, Type.public_key_type publicKey, String jsonMeta){
@@ -99,6 +240,10 @@ public class Operation {
         }
     }
 
+    /**
+     * Operation creation.
+     * OperationCreator implements {@link OperationProcessor} and outputs protobuf instance of each operation.
+     */
     public static class OperationCreator implements OperationProcessor<operation> {
 
         public operation accountCreate(String creator, String newAccount, long fee, Type.public_key_type publicKey, String jsonMeta) {
@@ -258,6 +403,9 @@ public class Operation {
             return ByteBuffer.wrap(digest).order(ByteOrder.BIG_ENDIAN).getLong();
         }
 
+        /**
+         * Factory class of {@link OperationCreator}
+         */
         public static class Factory implements OperationProcessorFactory<operation, OperationCreator> {
             public OperationCreator newInstance() {
                 return new OperationCreator();
