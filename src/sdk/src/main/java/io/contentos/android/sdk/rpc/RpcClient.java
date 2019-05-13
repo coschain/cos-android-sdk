@@ -3,8 +3,6 @@ package io.contentos.android.sdk.rpc;
 import com.google.protobuf.ByteString;
 import io.contentos.android.sdk.prototype.Transaction.signed_transaction;
 import io.contentos.android.sdk.prototype.Type;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.contentos.android.sdk.rpc.Grpc.*;
 import io.contentos.android.sdk.prototype.MultiId.*;
 
@@ -16,7 +14,7 @@ import io.contentos.android.sdk.prototype.MultiId.*;
  *     client.transfer(...);
  * </pre>
  * {@link #transfer} will generate a transaction containing a single transfer operation, sign it with
- * private key set by {@link #setSigningKey}, call {@link #broadcastTrx} and return the response.
+ * signing key, call {@link #broadcastTrx} and return the response.
  * </p>
  *
  * <p>In rare cases, when you have to send a transaction consisting of multiple operations, try the
@@ -32,41 +30,29 @@ import io.contentos.android.sdk.prototype.MultiId.*;
  * </p>
  */
 public class RpcClient extends Operation.BaseResultFilter<Transaction, Transaction, BroadcastTrxResponse> {
-
-    // Agent string used in gRPC
-    private static final String RpcAgent = "io.contentos.android.sdk.rpc.RpcClient";
     
-    private ManagedChannel channel;
-    private ApiServiceGrpc.ApiServiceBlockingStub service;
-    private String signingKey;
+    protected ApiServiceGrpc.ApiServiceBlockingStub service;
+    protected String signingKey;
 
     /**
      * Create an instance of RPC client.
-     * @param serverHost    gRPC server host name
-     * @param serverPort    gRPC server port
+     * @param service       the gRPC service
+     * @param signingKey    the signing private key for transactions
      */
-    public RpcClient(String serverHost, int serverPort) {
+    public RpcClient(ApiServiceGrpc.ApiServiceBlockingStub service, String signingKey) {
         super(new Transaction.Factory());
-
-        // create the channel and gRPC service
-        channel = ManagedChannelBuilder.forAddress(serverHost, serverPort)
-                .usePlaintext()
-                .userAgent(RpcAgent)
-                .build();
-        service = ApiServiceGrpc.newBlockingStub(channel);
+        this.service = service;
+        this.signingKey = signingKey;
     }
 
     /**
-     * Shut down the client.
+     * Create an instance of RPC client.
+     * @param service the gRPC service
      */
-    public void shutdown() {
-        try {
-            channel.shutdownNow();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public RpcClient(ApiServiceGrpc.ApiServiceBlockingStub service) {
+        this(service, null);
     }
-
+    
     /**
      * Override method of {@link Operation.BaseResultFilter#filterResult} to sign and broadcast a transaction.
      * @param trx the transaction to sign and broadcast
@@ -76,23 +62,7 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
     protected BroadcastTrxResponse filterResult(Transaction trx) {
         return signAndBroadcastTrx(trx, true);
     }
-
-    /**
-     * Set signing key for transactions.
-     * @param wifPrivateKey private key in WIF encoding
-     */
-    public synchronized void setSigningKey(String wifPrivateKey) {
-        signingKey = wifPrivateKey;
-    }
-
-    /**
-     * Get signing key for transactions.
-     * @return signing key in WIF encoding.
-     */
-    public synchronized String getSigningKey() {
-        return signingKey;
-    }
-
+    
     /**
      * Query a smart contract's database table.
      * @param owner     name of contract owner account
@@ -373,8 +343,8 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
      */
     public BroadcastTrxResponse signAndBroadcastTrx(Transaction trx, boolean waitResult) {
         trx.setDynamicGlobalProps(getChainState().getState().getDgpo());
-        String key = getSigningKey();
-        if (key == null) {
+        String key = this.signingKey;
+        if (key == null || key.length() == 0) {
             throw new RuntimeException("signing key not found");
         }
         return broadcastTrx(trx.sign(key, 0), waitResult);
