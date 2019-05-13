@@ -1,5 +1,7 @@
 package io.contentos.android.sdk;
 
+import java.util.Random;
+
 public class Utils {
 
     static String byteArrayToHex(byte[] a) {
@@ -17,6 +19,17 @@ public class Utils {
                     + Character.digit(s.charAt(i+1), 16));
         }
         return data;
+    }
+
+    static String randomAccountName() {
+        String alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        Random r = new Random();
+        r.setSeed(System.currentTimeMillis());
+        StringBuilder b = new StringBuilder("ru");
+        for (int i = 0; i < 8; i++) {
+            b.append(alphabet.charAt(r.nextInt(alphabet.length())));
+        }
+        return b.toString();
     }
 
 }
