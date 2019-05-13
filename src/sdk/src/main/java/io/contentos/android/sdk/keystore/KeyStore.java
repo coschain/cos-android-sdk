@@ -5,8 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
+import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -64,8 +65,8 @@ public class KeyStore implements KeystoreAPI {
         save();
     }
 
-    public synchronized Set<String> getAccounts() {
-        return keys.keySet();
+    public synchronized List<String> getAccounts() {
+        return new ArrayList<>(keys.keySet());
     }
 
     // load from keystore file
@@ -87,7 +88,7 @@ public class KeyStore implements KeystoreAPI {
             fInput.close();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -111,7 +112,7 @@ public class KeyStore implements KeystoreAPI {
             fout.close();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

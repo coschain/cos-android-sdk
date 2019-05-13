@@ -1,6 +1,6 @@
 package io.contentos.android.sdk.keystore;
 
-import java.util.Set;
+import java.util.List;
 
 public interface KeystoreAPI {
     /**
@@ -27,5 +27,5 @@ public interface KeystoreAPI {
      * Get all accounts from keystore.
      * @return set of account names.
      */
-    Set<String> getAccounts();
+    List<String> getAccounts();
 }

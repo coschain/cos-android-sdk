@@ -1,7 +1,7 @@
 package io.contentos.android.sdk;
 
 import java.io.File;
-import java.util.Set;
+import java.util.List;
 
 import io.contentos.android.sdk.keystore.KeyStore;
 import io.contentos.android.sdk.keystore.KeystoreAPI;
@@ -83,7 +83,7 @@ public final class Wallet extends RpcClient implements KeystoreAPI {
         keyStore.removeKey(account);
     }
 
-    public synchronized Set<String> getAccounts() {
+    public synchronized List<String> getAccounts() {
         if (keyStore == null) {
             throw new RuntimeException("no open keystore");
         }

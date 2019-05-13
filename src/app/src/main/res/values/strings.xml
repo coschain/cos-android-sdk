@@ -1,4 +1,15 @@
 <resources>
     <string name="app_name">SDK Demo</string>
     <string name="action_settings">Settings</string>
+    <string name="wallet_password_hint">Enter your password</string>
+    <string name="wallet_open">Open Wallet</string>
+    <string name="wallet_create">Create Wallet</string>
+    <string name="wallet_open_failed">Failed open wallet</string>
+    <string name="title_activity_op">OpActivity</string>
+    <string name="tab_title">Using account</string>
+    <string name="tab_text_transfer">Transfer</string>
+    <string name="tab_text_post">Post</string>
+    <string name="tab_text_create_account">+Account</string>
+    <string name="tab_text_select_account">Me</string>
+
 </resources>
