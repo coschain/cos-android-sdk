@@ -252,6 +252,7 @@ public class Operation {
                             .setCreator(Type.account_name.newBuilder().setValue(creator))
                             .setNewAccountName(Type.account_name.newBuilder().setValue(newAccount))
                             .setFee(Type.coin.newBuilder().setValue(fee))
+                            .setOwner(publicKey)
                             .setJsonMetadata(jsonMeta)
             ).build();
         }
