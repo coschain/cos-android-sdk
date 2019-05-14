@@ -12,4 +12,16 @@
     <string name="tab_text_create_account">+Account</string>
     <string name="tab_text_select_account">Me</string>
 
+    <string name="transfer_recv_hint">To whom</string>
+    <string name="transfer_amount_hint">How much</string>
+    <string name="transfer_btn_text">Transfer</string>
+    <string name="transfer_err_amount">Invalid amount value</string>
+
+    <string name="post_title_hint">title</string>
+    <string name="post_content_hint">content</string>
+    <string name="post_btn_text">Post</string>
+
+    <string name="new_acc_name_hint">account name</string>
+    <string name="new_acc_btn_text">Create</string>
+
 </resources>
