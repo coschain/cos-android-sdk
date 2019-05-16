@@ -5,6 +5,8 @@ import io.contentos.android.sdk.prototype.Transaction.signed_transaction;
 import io.contentos.android.sdk.prototype.Type;
 import io.contentos.android.sdk.rpc.Grpc.*;
 import io.contentos.android.sdk.prototype.MultiId.*;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 
 /**
  * The RPC Client.
@@ -60,7 +62,14 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
      */
     @Override
     protected BroadcastTrxResponse filterResult(Transaction trx) {
-        return signAndBroadcastTrx(trx, true);
+        BroadcastTrxResponse response = signAndBroadcastTrx(trx, true);
+        if (!response.hasInvoice()) {
+            throw Status.UNKNOWN.withDescription("No invoice").asRuntimeException();
+        }
+        if (response.getInvoice().getStatus() == 500) {
+            throw Status.UNKNOWN.withDescription(response.getInvoice().getErrorInfo()).asRuntimeException();
+        }
+        return response;
     }
     
     /**
