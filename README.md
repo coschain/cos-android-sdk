@@ -26,7 +26,7 @@ wallet.openKeyStore(keystoreFile, password);
 
 A keystore is just a normal local file that stores all your accounts. Its contents are encrypted for better security, so we need to specify a password for a keystore. In a real app, password should be asked everytime a keystore being opened, and never be stored.
 
-If you pass a non-existent file to `openKeyStore()`, an new empty keystore file will be created.
+If you pass a non-existent file to `openKeyStore()`, a new empty keystore file will be created.
 
 ### Import accounts
 
@@ -38,7 +38,7 @@ String privateKey = "4QMbCzf1GVD86UqngHPPX2HGSxU7tUuup2qirNS8JjiY3xKpWx";
 wallet.addKey(accountName, privateKey);
 ```
 
-If you have multiple accounts, just call `addKey()` repeatly to import them all. Imported accounts are permanently stored in the keystore file, you don't have to import them again next time keystore is opened. 
+If you have multiple accounts, just call `addKey()` repeatly to import them all. Imported accounts are permanently stored in the keystore file, you don't have to import them again next time the keystore is opened. 
 
 You can also browse your accounts, query for private keys or remove accounts.
 
@@ -61,10 +61,10 @@ wallet.account("sdktest").transfer(
 );
 ```
 
-`account("sdktest")` tells the wallet to use account `sdktest`, and `transfer()` tells the wallet that we want to transfer some tokens. What the wallet actually do is,
+`account("sdktest")` tells the wallet to use account `sdktest`, and `transfer()` tells the wallet that we want to transfer some tokens. What the wallet actually do are,
 
 - build a transaction containing our transfer parameters
-- sign the transaction using private key of selected account `sdktest`
+- sign the transaction using private key of `sdktest`, specified by `account("sdktest")`
 - send the transaction to gRPC server and return reponse from server
 
 If the transaction failed, an Exception raised.
