@@ -1,61 +1,154 @@
 package io.contentos.android.sdkdemo;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.File;
+import java.util.Arrays;
+import java.util.HashMap;
 
 import io.contentos.android.sdk.Wallet;
+import io.contentos.android.sdk.crypto.Key;
+import io.contentos.android.sdk.encoding.WIF;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements
+        View.OnClickListener,
+        AccountListDialogFragment.Listener,
+        TransferFragment.Listener,
+        PostFragment.Listener,
+        NewAccountFragment.Listener
+{
 
-    private File keyStoreFile;
+    private TextView mTitle;
+    private Wallet m_wallet;
+    private String m_account;
+    private AlertDialog mWaitDlg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_op);
+        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
+        ViewPager viewPager = findViewById(R.id.view_pager);
+        viewPager.setAdapter(sectionsPagerAdapter);
+        TabLayout tabs = findViewById(R.id.tabs);
+        tabs.setupWithViewPager(viewPager);
 
-        keyStoreFile = Constants.keyStoreFile(this);
-        Button b = findViewById(R.id.btnOpenWallet);
-        b.setOnClickListener(this);
-        b.setText(keyStoreFile.exists()? R.string.wallet_open : R.string.wallet_create);
+        mTitle = findViewById(R.id.title);
+        mTitle.setOnClickListener(this);
+
+        m_wallet = new Wallet(Constants.serverHost, Constants.serverPort);
+        m_wallet.openKeyStore(Constants.keyStoreFile(this), getIntent().getStringExtra(Constants.EXTRA_WALLET_PASSWORD));
+        setCurrentAccount(m_wallet.getAccounts().get(0));
+
+        mWaitDlg = new AlertDialog.Builder(this).setMessage("Please wait...").create();
     }
 
     @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btnOpenWallet:
-                onClickOpenWalletButton();
-        }
+    protected void onDestroy() {
+        super.onDestroy();
+        m_wallet.close();
     }
 
-    private void onClickOpenWalletButton() {
-        EditText textPasswd = findViewById(R.id.editPassword);
-        String password = textPasswd.getText().toString();
-        Wallet wallet = new Wallet(Constants.serverHost, Constants.serverPort);
-        try {
-            wallet.openKeyStore(keyStoreFile, password);
-            if (wallet.getAccounts().size() == 0) {
-                wallet.addKey(Constants.testAccountName, Constants.testAccountPrivateKey);
-            }
-            Intent intent = new Intent();
-            intent.setClass(MainActivity.this, OpActivity.class);
-            intent.putExtra(Constants.EXTRA_WALLET_PASSWORD, password);
-            startActivity(intent);
+    public Wallet wallet() {
+        return m_wallet;
+    }
 
-        } catch (Exception e) {
-            Toast.makeText(this, getString(R.string.wallet_open_failed), Toast.LENGTH_SHORT).show();
-        }
+    public String currentAccount() {
+        return m_account;
+    }
+
+    public void setCurrentAccount(String name) {
+        m_account = name;
+        mTitle.setText(getString(R.string.tab_title) + " " + m_account);
+    }
+
+    public void onClick(View v) {
+        AccountListDialogFragment.newInstance(m_wallet.getAccounts()).show(getSupportFragmentManager(), "AccountList");
+    }
+
+    public void onAccountClicked(int position) {
+        setCurrentAccount(m_wallet.getAccounts().get(position));
+    }
+
+    public void onTransferClicked(final String receiver, final long amount) {
+        runTask(new Runnable() {
+            @Override
+            public void run() {
+                String me = currentAccount();
+                wallet().account(me).transfer(me, receiver, amount, "");
+            }
+        });
+    }
+
+    public void onPostClicked(final String title, final String content) {
+        runTask(new Runnable() {
+            @Override
+            public void run() {
+                String me = currentAccount();
+                wallet().account(me).post(me, title, content, Arrays.asList("sdkdemo", me), new HashMap<String, Integer>());
+            }
+        });
+    }
+
+    public void onNewAccountClicked(final String name) {
+        runTask(new Runnable() {
+            @Override
+            public void run() {
+                String me = currentAccount();
+                String privateKey = WIF.fromPrivateKey(Key.generate());
+                wallet().account(me).accountCreate(me, name, 1, Key.publicKeyOf(WIF.toPrivateKey(privateKey)), "");
+                wallet().addKey(name, privateKey);
+            }
+        });
+    }
+
+    public void showWaitDlg(final boolean show) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (show) {
+                    mWaitDlg.show();
+                } else {
+                    mWaitDlg.dismiss();
+                }
+            }
+        });
+    }
+
+    public void showToast(final String message, final int duration) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, message, duration).show();
+            }
+        });
+    }
+
+    public void runTask(final Runnable task) {
+        showWaitDlg(true);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Exception exc = null;
+                try {
+                    task.run();
+                } catch (Exception e) {
+                    exc = e;
+                }
+                showWaitDlg(false);
+                if (exc == null) {
+                    showToast("Success", Toast.LENGTH_SHORT);
+                } else {
+                    showToast("Failed: " + exc.toString(), Toast.LENGTH_LONG);
+                    Log.e("OPTask", exc.toString());
+                }
+            }
+        }).start();
     }
 }
