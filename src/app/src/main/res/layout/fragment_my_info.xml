@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/my_info_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:orientation="vertical"
+    android:gravity="center_vertical"
+    tools:context=".MyInfoFragment" >
+
+    <TextView
+        android:id="@+id/label_account_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/me_account"
+        android:textStyle="bold"
+        />
+    <EditText
+        android:id="@+id/text_account_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/label_account_name"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="account name here" />
+    <TextView
+        android:id="@+id/splitor1"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_below="@id/text_account_name"
+        />
+    <TextView
+        android:id="@+id/label_public_key"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/splitor1"
+        android:text="@string/me_public_key"
+        android:textStyle="bold"
+        />
+    <TextView
+        android:id="@+id/text_public_key"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/label_public_key"
+        android:text="public key here"
+        />
+    <TextView
+        android:id="@+id/splitor2"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_below="@id/text_public_key"
+        />
+    <TextView
+        android:id="@+id/label_private_key"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/splitor2"
+        android:text="@string/me_private_key"
+        android:textStyle="bold"
+        />
+    <TextView
+        android:id="@+id/text_private_key"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/label_private_key"
+        android:text="private key here"
+        />
+    <TextView
+        android:id="@+id/splitor3"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_below="@id/text_private_key"
+        />
+
+    <LinearLayout
+        android:id="@+id/btn_container1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/splitor3"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/me_switch_btn_text" />
+
+        <Button
+            android:id="@+id/btn_import"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/me_import_btn_text" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btn_container2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/splitor3"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_import_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@android:string/cancel" />
+
+        <Button
+            android:id="@+id/btn_import_ok"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@android:string/ok" />
+
+    </LinearLayout>
+
+</RelativeLayout>

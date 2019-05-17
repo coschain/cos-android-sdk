@@ -3,6 +3,7 @@ package io.contentos.android.sdkdemo;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -21,7 +22,8 @@ public class MainActivity extends AppCompatActivity implements
         AccountListDialogFragment.Listener,
         TransferFragment.Listener,
         PostFragment.Listener,
-        NewAccountFragment.Listener
+        NewAccountFragment.Listener,
+        MyInfoFragment.Listener
 {
 
     private TextView mTitle;
@@ -66,10 +68,21 @@ public class MainActivity extends AppCompatActivity implements
     public void setCurrentAccount(String name) {
         m_account = name;
         mTitle.setText(getString(R.string.tab_title) + " " + m_account);
+
+        MyInfoFragment myInfo = null;
+        for (Fragment f: getSupportFragmentManager().getFragments()) {
+            if (f instanceof MyInfoFragment) {
+                myInfo = (MyInfoFragment) f;
+                break;
+            }
+        }
+        if (myInfo != null) {
+            myInfo.refreshInfo();
+        }
     }
 
     public void onClick(View v) {
-        AccountListDialogFragment.newInstance(m_wallet.getAccounts()).show(getSupportFragmentManager(), "AccountList");
+        onSwitchAccountClicked();
     }
 
     public void onAccountClicked(int position) {
@@ -106,6 +119,10 @@ public class MainActivity extends AppCompatActivity implements
                 wallet().addKey(name, privateKey);
             }
         });
+    }
+
+    public void onSwitchAccountClicked() {
+        AccountListDialogFragment.newInstance(m_wallet.getAccounts()).show(getSupportFragmentManager(), "AccountList");
     }
 
     public void showWaitDlg(final boolean show) {

@@ -13,7 +13,8 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     private static final int[] TAB_TITLES = new int[]{
             R.string.tab_text_transfer,
             R.string.tab_text_post,
-            R.string.tab_text_create_account
+            R.string.tab_text_create_account,
+            R.string.tab_text_me,
     };
     private final Context mContext;
 
@@ -31,6 +32,8 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
                 return PostFragment.newInstance();
             case R.string.tab_text_create_account:
                 return NewAccountFragment.newInstance();
+            case R.string.tab_text_me:
+                return MyInfoFragment.newInstance();
         }
         return null;
     }
