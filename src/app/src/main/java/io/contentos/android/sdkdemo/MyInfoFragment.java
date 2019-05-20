@@ -56,6 +56,20 @@ public class MyInfoFragment extends Fragment implements View.OnClickListener {
     }
 
     @Override
+    public void onStart(){
+        super.onStart();
+        if (!mAccountName.isFocusableInTouchMode()) {
+            MainActivity mainActivity = (MainActivity)getActivity();
+            if (mainActivity != null) {
+                String account = mainActivity.currentAccount();
+                if (account != null) {
+                    mAccountName.setText(account);
+                }
+            }
+        }
+    }
+
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         final Fragment parent = getParentFragment();
