@@ -155,11 +155,12 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
      * Get follower list of specific account.
      * @param accountName   the account being followed
      * @param pageSize      maximum items in a page
-     * @return follower list in descending order of follow-ship creation time.
+     * @return follower list in ascending order of follow-ship creation time.
      */
     public RpcResultPages<GetFollowerListByNameResponse, follower_created_order, follower_created_order> getFollowerListByName(String accountName, int pageSize) {
         follower_created_order.Builder query = follower_created_order.newBuilder()
-                .setAccount(accountName(accountName));
+                .setAccount(accountName(accountName))
+                .setFollower(accountName(""));
 
         return new RpcResultPages<GetFollowerListByNameResponse, follower_created_order, follower_created_order>(
                 query.clone().setCreatedTime(minTimeStamp).build(),
@@ -182,7 +183,12 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
             }
 
             @Override
-            protected boolean isEmptyResponse(GetFollowerListByNameResponse resp) {
+            protected follower_created_order keyOfValue(follower_created_order value) {
+                return value;
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetFollowerListByNameResponse resp) {
                 return resp == null || resp.getFollowerListCount() == 0;
             }
         };
@@ -219,7 +225,12 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
             }
 
             @Override
-            protected boolean isEmptyResponse(GetFollowingListByNameResponse resp) {
+            protected following_created_order keyOfValue(following_created_order value) {
+                return value;
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetFollowingListByNameResponse resp) {
                 return resp == null || resp.getFollowingListCount() == 0;
             }
         };
@@ -243,11 +254,11 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
      * @param pageSize maximum items in a page
      * @return list of block producers in ascending order of account names.
      */
-    public RpcResultPages<GetWitnessListResponse, Void, String> getWitnessList(int pageSize) {
-        return new RpcResultPages<GetWitnessListResponse, Void, String>(null, null, pageSize)
+    public RpcResultPages<GetWitnessListResponse, String, String> getWitnessList(int pageSize) {
+        return new RpcResultPages<GetWitnessListResponse, String, String>(null, null, pageSize)
         {
             @Override
-            protected GetWitnessListResponse request(Void start, Void end, int count, String last) {
+            protected GetWitnessListResponse request(String start, String end, int count, String last) {
                 GetWitnessListRequest.Builder b = GetWitnessListRequest.newBuilder();
                 b.setLimit(count);
                 if (last != null) {
@@ -262,7 +273,12 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
             }
 
             @Override
-            protected boolean isEmptyResponse(GetWitnessListResponse resp) {
+            protected String keyOfValue(String value) {
+                return value;
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetWitnessListResponse resp) {
                 return resp == null || resp.getWitnessListCount() == 0;
             }
         };
@@ -418,7 +434,12 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
             }
 
             @Override
-            protected boolean isEmptyResponse(GetAccountListResponse resp) {
+            protected Type.coin keyOfValue(AccountInfo value) {
+                return value.getCoin();
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetAccountListResponse resp) {
                 return resp == null || resp.getListCount() == 0;
             }
         };
@@ -429,14 +450,20 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
      * @param pageSize  maximum items in a page
      * @return the stats.
      */
-    public RpcResultPages<GetDailyTotalTrxResponse, Void, DailyTotalTrx> getDailyTotalTrxInfo(int pageSize) {
-        return new RpcResultPages<GetDailyTotalTrxResponse, Void, DailyTotalTrx>(
+    public RpcResultPages<GetDailyTotalTrxResponse, Type.time_point_sec, DailyTotalTrx> getDailyTotalTrxInfo(int pageSize) {
+        return new RpcResultPages<GetDailyTotalTrxResponse, Type.time_point_sec, DailyTotalTrx>(
                 null, null, pageSize)
         {
             @Override
-            protected GetDailyTotalTrxResponse request(Void start, Void end, int count, DailyTotalTrx last) {
+            protected GetDailyTotalTrxResponse request(Type.time_point_sec start, Type.time_point_sec end, int count, DailyTotalTrx last) {
                 GetDailyTotalTrxRequest.Builder b = GetDailyTotalTrxRequest.newBuilder();
                 b.setLimit(count);
+                if (start != null) {
+                    b.setStart(start);
+                }
+                if (end != null) {
+                    b.setEnd(end);
+                }
                 if (last != null) {
                     b.setLastInfo(last);
                 }
@@ -449,7 +476,12 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
             }
 
             @Override
-            protected boolean isEmptyResponse(GetDailyTotalTrxResponse resp) {
+            protected Type.time_point_sec keyOfValue(DailyTotalTrx value) {
+                return value.getDate();
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetDailyTotalTrxResponse resp) {
                 return resp == null || resp.getListCount() == 0;
             }
         };
@@ -497,7 +529,12 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
             }
 
             @Override
-            protected boolean isEmptyResponse(GetTrxListByTimeResponse resp) {
+            protected Type.time_point_sec keyOfValue(TrxInfo value) {
+                return value.getBlockTime();
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetTrxListByTimeResponse resp) {
                 return resp == null || resp.getListCount() == 0;
             }
         };
@@ -532,7 +569,12 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
             }
 
             @Override
-            protected boolean isEmptyResponse(GetPostListByCreateTimeResponse resp) {
+            protected Type.time_point_sec keyOfValue(PostResponse value) {
+                return value.getCreated();
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetPostListByCreateTimeResponse resp) {
                 return resp == null || resp.getPostedListCount() == 0;
             }
         };
@@ -544,7 +586,7 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
      * @param pageSize  maximum items in a page
      * @return post list in descending order of creation time.
      */
-    public RpcResultPages<GetPostListByCreateTimeResponse, user_post_create_order, PostResponse> getPostListByName(String author, int pageSize) {
+    public RpcResultPages<GetPostListByCreateTimeResponse, user_post_create_order, PostResponse> getPostListByName(final String author, int pageSize) {
         user_post_create_order.Builder query = user_post_create_order.newBuilder();
         query.setAuthor(accountName(author));
 
@@ -569,7 +611,15 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
             }
 
             @Override
-            protected boolean isEmptyResponse(GetPostListByCreateTimeResponse resp) {
+            protected user_post_create_order keyOfValue(PostResponse value) {
+                user_post_create_order.Builder b = user_post_create_order.newBuilder();
+                b.setAuthor(accountName(author));
+                b.setCreate(value.getCreated());
+                return b.build();
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetPostListByCreateTimeResponse resp) {
                 return resp == null || resp.getPostedListCount() == 0;
             }
         };
@@ -617,7 +667,12 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
             }
 
             @Override
-            protected boolean isEmptyResponse(GetUserTrxListByTimeResponse resp) {
+            protected Type.time_point_sec keyOfValue(TrxInfo value) {
+                return value.getBlockTime();
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetUserTrxListByTimeResponse resp) {
                 return resp == null || resp.getTrxListCount() == 0;
             }
         };
@@ -699,7 +754,12 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
             }
 
             @Override
-            protected boolean isEmptyResponse(GetAccountListResponse resp) {
+            protected Type.time_point_sec keyOfValue(AccountInfo value) {
+                return value.getCreatedTime();
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetAccountListResponse resp) {
                 return resp == null || resp.getListCount() == 0;
             }
         };

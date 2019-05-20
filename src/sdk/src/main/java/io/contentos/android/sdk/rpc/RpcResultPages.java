@@ -1,5 +1,7 @@
 package io.contentos.android.sdk.rpc;
 
+import java.util.ArrayList;
+
 /**
  * Helper class for easy page queries.
  *
@@ -12,11 +14,24 @@ public abstract class RpcResultPages<ResponseType, KeyType, ValueType> {
     private static final int defaultPageSize = 30;
     private static final int maxPageSize = 100;
 
-    private KeyType start;
+    private static class PageParam<KeyType, ValueType> {
+        KeyType start;
+        KeyType end;
+        ValueType last;
+        int limit;
+
+        PageParam(KeyType start, KeyType end, ValueType last, int limit) {
+            this.start = start;
+            this.end = end;
+            this.last = last;
+            this.limit = limit;
+        }
+    }
+
     private KeyType end;
     private int pageSize;
-    private ValueType lastForPrev, lastForCurrent, lastForNext;
     private int currentPage = -1;
+    private ArrayList<PageParam<KeyType, ValueType>> pageQueries = new ArrayList<>();
 
     /**
      * Create an instance representing result pages.
@@ -25,14 +40,14 @@ public abstract class RpcResultPages<ResponseType, KeyType, ValueType> {
      * @param pageSize  page size
      */
     RpcResultPages(KeyType start, KeyType end, int pageSize) {
-        this.start = start;
-        this.end = end;
         if (pageSize <= 0) {
             pageSize = defaultPageSize;
         } else if (pageSize > maxPageSize) {
             pageSize = maxPageSize;
         }
         this.pageSize = pageSize;
+        this.end = end;
+        pageQueries.add(new PageParam<KeyType, ValueType>(start, this.end, null, this.pageSize));
     }
 
     /**
@@ -57,17 +72,7 @@ public abstract class RpcResultPages<ResponseType, KeyType, ValueType> {
      * @return response for next page.
      */
     public ResponseType nextPage() {
-        ResponseType resp = request(start, end, pageSize, lastForNext);
-        if (!isEmptyResponse(resp)) {
-            ValueType last = getLastItem(resp);
-            if (last != null) {
-                lastForPrev = lastForCurrent;
-                lastForCurrent = lastForNext;
-                lastForNext = last;
-                currentPage++;
-            }
-        }
-        return resp;
+        return toPage(currentPage + 1);
     }
 
     /**
@@ -75,18 +80,36 @@ public abstract class RpcResultPages<ResponseType, KeyType, ValueType> {
      * @return response for previous page.
      */
     public ResponseType prevPage() {
-        if (currentPage <= 0) {
+        return toPage(currentPage - 1);
+    }
+
+    /**
+     * Query and return the result of specified page.
+     * @param idx page index (0-based)
+     * @return response for the page. null if the page index is invalid or empty page.
+     * <p>
+     *     If null is returned, page pivot doesn't change.
+     * </p>
+     */
+    public ResponseType toPage(int idx) {
+        if (idx < 0 || idx >= pageQueries.size()) {
             return null;
         }
-        ResponseType resp = request(start, end, pageSize, lastForPrev);
-        if (!isEmptyResponse(resp)) {
-            ValueType last = getLastItem(resp);
-            if (last != null) {
-                lastForNext = lastForCurrent;
-                lastForCurrent = lastForPrev;
-                lastForPrev = last;
-                currentPage--;
-            }
+        PageParam<KeyType, ValueType> q = pageQueries.get(idx);
+        ResponseType resp = request(q.start, q.end, q.limit, q.last);
+        boolean emptyPage = isEmptyResponse(resp);
+        int count = pageQueries.size() - idx - 1;
+        for (int i = 0; i < count; i++) {
+            pageQueries.remove(pageQueries.size() - 1);
+        }
+        ValueType lastValue = getLastItem(resp);
+        KeyType lastKey = lastValue == null? null : keyOfValue(lastValue);
+        pageQueries.add(new PageParam<>(lastKey, this.end, lastValue, this.pageSize));
+
+        if (!emptyPage) {
+            currentPage = idx;
+        } else {
+            resp = null;
         }
         return resp;
     }
@@ -109,9 +132,16 @@ public abstract class RpcResultPages<ResponseType, KeyType, ValueType> {
     protected abstract ValueType getLastItem(ResponseType resp);
 
     /**
+     * Get the key of given value.
+     * @param value the value
+     * @return key of the value.
+     */
+    protected abstract KeyType keyOfValue(ValueType value);
+
+    /**
      * Check if the given response is an empty list.
      * @param resp the response
      * @return true if empty, otherwise false.
      */
-    protected abstract boolean isEmptyResponse(ResponseType resp);
+    public abstract boolean isEmptyResponse(ResponseType resp);
 }
