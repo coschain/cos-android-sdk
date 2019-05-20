@@ -198,7 +198,7 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
      * Get followee list of specific account
      * @param accountName  the follower account
      * @param pageSize     maximum items in a page
-     * @return list of accounts followed by the account, in descending order of follow-ship creation time.
+     * @return list of accounts followed by the account, in ascending order of follow-ship creation time.
      */
     public RpcResultPages<GetFollowingListByNameResponse, following_created_order, following_created_order> getFollowingListByName(String accountName, int pageSize) {
         following_created_order.Builder query = following_created_order.newBuilder()
@@ -251,37 +251,14 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
 
     /**
      * Get block producers.
-     * @param pageSize maximum items in a page
      * @return list of block producers in ascending order of account names.
      */
-    public RpcResultPages<GetWitnessListResponse, String, String> getWitnessList(int pageSize) {
-        return new RpcResultPages<GetWitnessListResponse, String, String>(null, null, pageSize)
-        {
-            @Override
-            protected GetWitnessListResponse request(String start, String end, int count, String last) {
-                GetWitnessListRequest.Builder b = GetWitnessListRequest.newBuilder();
-                b.setLimit(count);
-                if (last != null) {
-                    b.setStart(accountName(last));
-                }
-                return service.getWitnessList(b.build());
-            }
-
-            @Override
-            protected String getLastItem(GetWitnessListResponse resp) {
-                return isEmptyResponse(resp)? null : resp.getWitnessList(resp.getWitnessListCount() - 1).getOwner().getValue();
-            }
-
-            @Override
-            protected String keyOfValue(String value) {
-                return value;
-            }
-
-            @Override
-            public boolean isEmptyResponse(GetWitnessListResponse resp) {
-                return resp == null || resp.getWitnessListCount() == 0;
-            }
-        };
+    public GetWitnessListResponse getWitnessList() {
+        return service.getWitnessList(
+                GetWitnessListRequest.newBuilder()
+                        .setLimit(1000000)
+                        .build()
+        );
     }
 
     /**
@@ -295,9 +272,9 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
         return service.getPostListByCreated(
                 GetPostListByCreatedRequest.newBuilder()
                         .setStart(post_created_order.newBuilder()
-                                .setCreated(timeStamp(startTimestamp)))
-                        .setEnd(post_created_order.newBuilder()
                                 .setCreated(timeStamp(endTimeStamp)))
+                        .setEnd(post_created_order.newBuilder()
+                                .setCreated(timeStamp(startTimestamp)))
                         .setLimit(count)
                         .build()
         );
@@ -316,10 +293,10 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
                 GetReplyListByPostIdRequest.newBuilder()
                         .setStart(reply_created_order.newBuilder()
                                 .setParentId(parentId)
-                                .setCreated(timeStamp(startTimestamp)))
+                                .setCreated(timeStamp(endTimeStamp)))
                         .setEnd(reply_created_order.newBuilder()
                                 .setParentId(parentId)
-                                .setCreated(timeStamp(endTimeStamp)))
+                                .setCreated(timeStamp(startTimestamp)))
                         .setLimit(count)
                         .build()
         );
@@ -378,7 +355,7 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
     /**
      * Get blocks.
      * @param startBlockNum minimal block number, inclusive
-     * @param endBlockNum   maximum block number, exclusive
+     * @param endBlockNum   maximum block number, inclusive
      * @param count maximum number of returned blocks
      * @return block list in ascending order of block number.
      */
@@ -407,15 +384,15 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
 
     /**
      * Get accounts whose balance is within a specific range.
-     * @param minBalance    minimal balance, inclusive
-     * @param maxBalance    maximum balance, exclusive
+     * @param minBalance    minimal balance, exclusive
+     * @param maxBalance    maximum balance, inclusive
      * @param pageSize      maximum items in a page
      * @return account list in descending order of balance.
      */
     public RpcResultPages<GetAccountListResponse, Type.coin, AccountInfo> getAccountListByBalance(long minBalance, long maxBalance, int pageSize) {
         return new RpcResultPages<GetAccountListResponse, Type.coin, AccountInfo>(
-                Type.coin.newBuilder().setValue(minBalance).build(),
                 Type.coin.newBuilder().setValue(maxBalance).build(),
+                Type.coin.newBuilder().setValue(minBalance).build(),
                 pageSize)
         {
             @Override
@@ -502,15 +479,15 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
 
     /**
      * Get transactions created in a specific time range.
-     * @param startTimestamp    minimal time stamp, in UTC seconds, inclusive
-     * @param endTimeStamp      maximum time stamp, in UTC seconds, exclusive
+     * @param startTimestamp    minimal time stamp, in UTC seconds, exclusive
+     * @param endTimeStamp      maximum time stamp, in UTC seconds, inclusive
      * @param pageSize          maximum items in a page
      * @return transactions in descending order of creation time.
      */
     public RpcResultPages<GetTrxListByTimeResponse, Type.time_point_sec, TrxInfo> getTrxListByTime(int startTimestamp, int endTimeStamp, int pageSize) {
         return new RpcResultPages<GetTrxListByTimeResponse, Type.time_point_sec, TrxInfo>(
-                timeStamp(startTimestamp),
                 timeStamp(endTimeStamp),
+                timeStamp(startTimestamp),
                 pageSize)
         {
             @Override
@@ -542,15 +519,15 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
 
     /**
      * Get posts created in specific time range.
-     * @param startTimestamp    minimal time stamp, in UTC seconds, inclusive
-     * @param endTimeStamp      maximum time stamp, in UTC seconds, exclusive
+     * @param startTimestamp    minimal time stamp, in UTC seconds, exclusive
+     * @param endTimeStamp      maximum time stamp, in UTC seconds, inclusive
      * @param pageSize          maximum items in a page
      * @return post list in descending order of creation time.
      */
     public RpcResultPages<GetPostListByCreateTimeResponse, Type.time_point_sec, PostResponse> getPostListByCreateTime(int startTimestamp, int endTimeStamp, int pageSize) {
         return new RpcResultPages<GetPostListByCreateTimeResponse, Type.time_point_sec, PostResponse>(
-                timeStamp(startTimestamp),
                 timeStamp(endTimeStamp),
+                timeStamp(startTimestamp),
                 pageSize)
         {
             @Override
@@ -591,8 +568,8 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
         query.setAuthor(accountName(author));
 
         return new RpcResultPages<GetPostListByCreateTimeResponse, user_post_create_order, PostResponse>(
-                query.clone().setCreate(minTimeStamp).build(),
                 query.clone().setCreate(maxTimeStamp).build(),
+                query.clone().setCreate(minTimeStamp).build(),
                 pageSize)
         {
             @Override
@@ -640,15 +617,15 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
     /**
      * Get transactions signed by specific account in specific time range.
      * @param name              account name
-     * @param startTimestamp    minimal time stamp, in UTC seconds, inclusive
-     * @param endTimeStamp      maximum time stamp, in UTC seconds, exclusive
+     * @param startTimestamp    minimal time stamp, in UTC seconds, exclusive
+     * @param endTimeStamp      maximum time stamp, in UTC seconds, inclusive
      * @param pageSize          maximum items in a page
      * @return transaction list in descending order of creation time.
      */
     public RpcResultPages<GetUserTrxListByTimeResponse, Type.time_point_sec, TrxInfo> getUserTrxListByTime(final String name, int startTimestamp, int endTimeStamp, int pageSize) {
         return new RpcResultPages<GetUserTrxListByTimeResponse, Type.time_point_sec, TrxInfo>(
-                timeStamp(startTimestamp),
                 timeStamp(endTimeStamp),
+                timeStamp(startTimestamp),
                 pageSize)
         {
             @Override
@@ -727,15 +704,15 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
 
     /**
      * Get accounts created in specific time range.
-     * @param startTimestamp    minimal time stamp, in UTC seconds, inclusive
-     * @param endTimeStamp      maximum time stamp, in UTC seconds, exclusive
+     * @param startTimestamp    minimal time stamp, in UTC seconds, exclusive
+     * @param endTimeStamp      maximum time stamp, in UTC seconds, inclusive
      * @param pageSize          maximum items in a page
      * @return account list in descending order of creation time.
      */
     public RpcResultPages<GetAccountListResponse, Type.time_point_sec, AccountInfo> getAccountListByCreTime(int startTimestamp, int endTimeStamp, int pageSize) {
         return new RpcResultPages<GetAccountListResponse, Type.time_point_sec, AccountInfo>(
-                timeStamp(startTimestamp),
                 timeStamp(endTimeStamp),
+                timeStamp(startTimestamp),
                 pageSize)
         {
             @Override
