@@ -10,6 +10,7 @@ import java.util.Map;
 
 
 import io.contentos.android.sdk.crypto.Hash;
+import io.contentos.android.sdk.encoding.Zlib;
 import io.contentos.android.sdk.prototype.Transaction.operation;
 import io.contentos.android.sdk.prototype.Type;
 import io.contentos.android.sdk.prototype.Operation.*;
@@ -31,6 +32,14 @@ public class Operation {
          * @return processing result
          */
         Result accountCreate(String creator, String newAccount, long fee, Type.public_key_type publicKey, String jsonMeta);
+
+        /**
+         * Process an operation of account update.
+         * @param account       name of the account
+         * @param publicKey     new public key
+         * @return processing result
+         */
+        Result accountUpdate(String account, Type.public_key_type publicKey);
 
         /**
          * Process an operation of token transfer.
@@ -68,6 +77,16 @@ public class Operation {
          * @return processing result
          */
         Result bpVote(String voter, String bp, boolean cancel);
+
+        /**
+         * Process an operation of block-producer update.
+         * @param account               name of block-producer account
+         * @param proposedStaminaFree   proposed stamina free amount
+         * @param tpsExpected           expected tps
+         * @param accountCreationFee    account creation fee in tokens
+         * @return processing result
+         */
+        Result bpUpdate(String account, long proposedStaminaFree, long tpsExpected, long accountCreationFee);
 
         /**
          * Process an operation of article posting.
@@ -118,13 +137,14 @@ public class Operation {
 
         /**
          * Process an operation of smart contract deployment.
-         * @param owner     name of account owning the contract
-         * @param contract  name of contract
-         * @param abi       ABI of contract
-         * @param code      code of contract
+         * @param owner      name of account owning the contract
+         * @param contract   name of contract
+         * @param abi        ABI of contract
+         * @param code       code of contract
+         * @param upgradable is this contract upgradable or not
          * @return processing result
          */
-        Result contractDeploy(String owner, String contract, String abi, byte[] code);
+        Result contractDeploy(String owner, String contract, String abi, byte[] code, boolean upgradable);
 
         /**
          * Process an operation of smart contract calling.
@@ -134,10 +154,9 @@ public class Operation {
          * @param method    name of contract method
          * @param params    parameters for contract method
          * @param coins     number of tokens to transfer from caller's balance to the contract
-         * @param gas       maximum affordable gas
          * @return processing result
          */
-        Result contractApply(String caller, String owner, String contract, String method, String params, long coins, long gas);
+        Result contractApply(String caller, String owner, String contract, String method, String params, long coins);
 
         /**
          * Process an operation of vesting-to-token conversion.
@@ -146,6 +165,24 @@ public class Operation {
          * @return processing result
          */
         Result convertVesting(String account, long amount);
+
+        /**
+         * Process an operation of token staking.
+         * @param from      name of account who spends tokens
+         * @param to        name of account who receives vestings
+         * @param amount    number of tokens to stake
+         * @return processing result
+         */
+        Result stake(String from, String to, long amount);
+
+        /**
+         * Process an operation of token un-staking.
+         * @param creditor  name of account who receives tokens
+         * @param debtor    name of account who spends vestings
+         * @param amount    number of vestings to un-stake
+         * @return processing result
+         */
+        Result unStake(String creditor, String debtor, long amount);
     }
 
     /**
@@ -191,6 +228,10 @@ public class Operation {
             return filterResult(upstreamFactory.newInstance().accountCreate(creator, newAccount, fee, publicKey, jsonMeta));
         }
 
+        public DstType accountUpdate(String account, Type.public_key_type publicKey){
+            return filterResult(upstreamFactory.newInstance().accountUpdate(account, publicKey));
+        }
+
         public DstType transfer(String from, String to, long amount, String memo){
             return filterResult(upstreamFactory.newInstance().transfer(from, to, amount, memo));
         }
@@ -205,6 +246,10 @@ public class Operation {
 
         public DstType bpVote(String voter, String bp, boolean cancel){
             return filterResult(upstreamFactory.newInstance().bpVote(voter, bp, cancel));
+        }
+
+        public DstType bpUpdate(String account, long proposedStaminaFree, long tpsExpected, long accountCreationFee){
+            return filterResult(upstreamFactory.newInstance().bpUpdate(account, proposedStaminaFree, tpsExpected, accountCreationFee));
         }
 
         public DstType post(String author, String title, String content, List<String> tags, Map<String, Integer> beneficiaries){
@@ -227,16 +272,24 @@ public class Operation {
             return filterResult(upstreamFactory.newInstance().transferToVesting(from, to, amount));
         }
 
-        public DstType contractDeploy(String owner, String contract, String abi, byte[] code){
-            return filterResult(upstreamFactory.newInstance().contractDeploy(owner, contract, abi, code));
+        public DstType contractDeploy(String owner, String contract, String abi, byte[] code, boolean upgradable){
+            return filterResult(upstreamFactory.newInstance().contractDeploy(owner, contract, abi, code, upgradable));
         }
 
-        public DstType contractApply(String caller, String owner, String contract, String method, String params, long coins, long gas){
-            return filterResult(upstreamFactory.newInstance().contractApply(caller, owner, contract, method, params, coins, gas));
+        public DstType contractApply(String caller, String owner, String contract, String method, String params, long coins){
+            return filterResult(upstreamFactory.newInstance().contractApply(caller, owner, contract, method, params, coins));
         }
 
         public DstType convertVesting(String account, long amount){
             return filterResult(upstreamFactory.newInstance().convertVesting(account, amount));
+        }
+
+        public DstType stake(String from, String to, long amount){
+            return filterResult(upstreamFactory.newInstance().stake(from, to, amount));
+        }
+
+        public DstType unStake(String creditor, String debtor, long amount){
+            return filterResult(upstreamFactory.newInstance().unStake(creditor, debtor, amount));
         }
     }
 
@@ -254,6 +307,14 @@ public class Operation {
                             .setFee(Type.coin.newBuilder().setValue(fee))
                             .setOwner(publicKey)
                             .setJsonMetadata(jsonMeta)
+            ).build();
+        }
+
+        public operation accountUpdate(String account, Type.public_key_type publicKey) {
+            return operation.newBuilder().setOp20(
+                    account_update_operation.newBuilder()
+                            .setOwner(Type.account_name.newBuilder().setValue(account))
+                            .setPubkey(publicKey)
             ).build();
         }
 
@@ -297,6 +358,16 @@ public class Operation {
                             .setVoter(Type.account_name.newBuilder().setValue(voter))
                             .setWitness(Type.account_name.newBuilder().setValue(bp))
                             .setCancel(cancel)
+            ).build();
+        }
+
+        public operation bpUpdate(String account, long proposedStaminaFree, long tpsExpected, long accountCreationFee){
+            return operation.newBuilder().setOp19(
+                    bp_update_operation.newBuilder()
+                            .setOwner(Type.account_name.newBuilder().setValue(account))
+                            .setProposedStaminaFree(proposedStaminaFree)
+                            .setTpsExpected(tpsExpected)
+                            .setAccountCreationFee(Type.coin.newBuilder().setValue(accountCreationFee))
             ).build();
         }
 
@@ -360,17 +431,18 @@ public class Operation {
             ).build();
         }
 
-        public operation contractDeploy(String owner, String contract, String abi, byte[] code) {
+        public operation contractDeploy(String owner, String contract, String abi, byte[] code, boolean upgradable) {
             return operation.newBuilder().setOp13(
                     contract_deploy_operation.newBuilder()
                             .setOwner(Type.account_name.newBuilder().setValue(owner))
                             .setContract(contract)
-                            .setAbi(abi)
-                            .setCode(ByteString.copyFrom(code))
+                            .setAbi(ByteString.copyFrom(Zlib.compressString(abi)))
+                            .setCode(ByteString.copyFrom(Zlib.compress(code)))
+                            .setUpgradeable(upgradable)
             ).build();
         }
 
-        public operation contractApply(String caller, String owner, String contract, String method, String params, long coins, long gas) {
+        public operation contractApply(String caller, String owner, String contract, String method, String params, long coins) {
             return operation.newBuilder().setOp14(
                     contract_apply_operation.newBuilder()
                             .setCaller(Type.account_name.newBuilder().setValue(caller))
@@ -379,7 +451,6 @@ public class Operation {
                             .setMethod(method)
                             .setParams(params)
                             .setAmount(Type.coin.newBuilder().setValue(coins))
-                            .setGas(Type.coin.newBuilder().setValue(gas))
             ).build();
         }
 
@@ -388,6 +459,24 @@ public class Operation {
                     convert_vesting_operation.newBuilder()
                             .setFrom(Type.account_name.newBuilder().setValue(account))
                             .setAmount(Type.vest.newBuilder().setValue(amount))
+            ).build();
+        }
+
+        public operation stake(String from, String to, long amount){
+            return operation.newBuilder().setOp17(
+                    stake_operation.newBuilder()
+                            .setFrom(Type.account_name.newBuilder().setValue(from))
+                            .setTo(Type.account_name.newBuilder().setValue(to))
+                            .setAmount(Type.coin.newBuilder().setValue(amount))
+            ).build();
+        }
+
+        public operation unStake(String creditor, String debtor, long amount) {
+            return operation.newBuilder().setOp18(
+                    un_stake_operation.newBuilder()
+                            .setCreditor(Type.account_name.newBuilder().setValue(creditor))
+                            .setDebtor(Type.account_name.newBuilder().setValue(debtor))
+                            .setAmount(Type.coin.newBuilder().setValue(amount))
             ).build();
         }
 

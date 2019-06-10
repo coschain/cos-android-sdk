@@ -111,19 +111,6 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
     }
 
     /**
-     * Get rewards of specific account.
-     * @param accountName  the account
-     * @return the reward.
-     */
-    public AccountRewardResponse getAccountRewardByName(String accountName) {
-        return service.getAccountRewardByName(
-                GetAccountRewardByNameRequest.newBuilder()
-                        .setAccountName(accountName(accountName))
-                        .build()
-        );
-    }
-
-    /**
      * Get reward to a specific account.
      * @param accountName   the account
      * @param postId        the post id rewards belong to
@@ -308,16 +295,6 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
      */
     public GetChainStateResponse getChainState() {
         return service.getChainState(
-                NonParamsRequest.getDefaultInstance()
-        );
-    }
-
-    /**
-     * Get block chain statistics.
-     * @return the stats.
-     */
-    public GetStatResponse getStatisticsInfo() {
-        return service.getStatisticsInfo(
                 NonParamsRequest.getDefaultInstance()
         );
     }
@@ -738,6 +715,141 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
             @Override
             public boolean isEmptyResponse(GetAccountListResponse resp) {
                 return resp == null || resp.getListCount() == 0;
+            }
+        };
+    }
+
+    /**
+     * Get stats of specific dAPP.
+     * @param dapp      name of dAPP
+     * @param days      how many days to stats
+     * @return stats information.
+     */
+    public GetDailyStatsResponse getDailyStats(String dapp, int days) {
+        return service.getDailyStats(
+                GetDailyStatsRequest.newBuilder()
+                        .setDapp(dapp)
+                        .setDays(days)
+                        .build()
+        );
+    }
+
+    /**
+     * Get smart contracts created in specific time range.
+     * @param startTimestamp    minimal time stamp, in UTC seconds, exclusive
+     * @param endTimeStamp      maximum time stamp, in UTC seconds, inclusive
+     * @param pageSize          maximum items in a page
+     * @return contract list in descending order of creation time.
+     */
+    public RpcResultPages<GetContractListResponse, Type.time_point_sec, ContractInfo> getContractListByTime(int startTimestamp, int endTimeStamp, int pageSize) {
+        return new RpcResultPages<GetContractListResponse, Type.time_point_sec, ContractInfo>(
+                timeStamp(endTimeStamp),
+                timeStamp(startTimestamp),
+                pageSize
+        ) {
+            @Override
+            protected GetContractListResponse request(Type.time_point_sec start, Type.time_point_sec end, int count, ContractInfo last) {
+                GetContractListByTimeRequest.Builder b = GetContractListByTimeRequest.newBuilder();
+                b.setStart(start).setEnd(end).setLimit(count);
+                if (last != null) {
+                    b.setLastContract(last);
+                }
+                return service.getContractListByTime(b.build());
+            }
+
+            @Override
+            protected ContractInfo getLastItem(GetContractListResponse resp) {
+                return isEmptyResponse(resp)? null : resp.getContractList(resp.getContractListCount() - 1);
+            }
+
+            @Override
+            protected Type.time_point_sec keyOfValue(ContractInfo value) {
+                return value.getCreateTime();
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetContractListResponse resp) {
+                return resp == null || resp.getContractListCount() == 0;
+            }
+        };
+    }
+
+    /**
+     * Get block producers with votes in specific range.
+     * @param startVest     minimal vote, in vestings, exclusive
+     * @param endVest       maximum vote, in vestings, inclusive
+     * @param pageSize      maximum items in a page
+     * @return block producer list in descending order of votes.
+     */
+    public RpcResultPages<GetWitnessListResponse, Type.vest, WitnessResponse> getWitnessListByVoteCount(long startVest, long endVest, int pageSize) {
+        return new RpcResultPages<GetWitnessListResponse, Type.vest, WitnessResponse>(
+                Type.vest.newBuilder().setValue(endVest).build(),
+                Type.vest.newBuilder().setValue(startVest).build(),
+                pageSize
+        ) {
+            @Override
+            protected GetWitnessListResponse request(Type.vest start, Type.vest end, int count, WitnessResponse last) {
+                GetWitnessListByVoteCountRequest.Builder b = GetWitnessListByVoteCountRequest.newBuilder();
+                b.setStart(start).setEnd(end).setLimit(count);
+                if (last != null) {
+                    b.setLastWitness(last);
+                }
+                return service.getWitnessListByVoteCount(b.build());
+            }
+
+            @Override
+            protected WitnessResponse getLastItem(GetWitnessListResponse resp) {
+                return isEmptyResponse(resp)? null : resp.getWitnessList(resp.getWitnessListCount() - 1);
+            }
+
+            @Override
+            protected Type.vest keyOfValue(WitnessResponse value) {
+                return value.getVoteCount();
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetWitnessListResponse resp) {
+                return resp == null || resp.getWitnessListCount() == 0;
+            }
+        };
+    }
+
+    /**
+     * Get posts with rewards in a specific range.
+     * @param startVest     minimal reward, in vestings, exclusive
+     * @param endVest       maximum reward, in vestings, inclusive
+     * @param pageSize      maximum items in a page
+     * @return post list in descending order of rewards.
+     */
+    public RpcResultPages<GetPostListByVestResponse, Type.vest, PostResponse> getPostListByVest(long startVest, long endVest, int pageSize) {
+        return new RpcResultPages<GetPostListByVestResponse, Type.vest, PostResponse>(
+                Type.vest.newBuilder().setValue(endVest).build(),
+                Type.vest.newBuilder().setValue(startVest).build(),
+                pageSize
+        ) {
+            @Override
+            protected GetPostListByVestResponse request(Type.vest start, Type.vest end, int count, PostResponse last) {
+                GetPostListByVestRequest.Builder b = GetPostListByVestRequest.newBuilder();
+                b.setStart(start).setEnd(end).setLimit(count);
+                if (last != null) {
+                    b.setLastPost(last);
+                }
+                return service.getPostListByVest(b.build());
+            }
+
+            @Override
+            protected PostResponse getLastItem(GetPostListByVestResponse resp) {
+                return isEmptyResponse(resp)? null : resp.getPostList(resp.getPostListCount() - 1);
+            }
+
+            @Override
+            protected Type.vest keyOfValue(PostResponse value) {
+                return value.getRewards();
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetPostListByVestResponse resp) {
+                return resp == null || resp.getPostListCount() == 0;
             }
         };
     }
