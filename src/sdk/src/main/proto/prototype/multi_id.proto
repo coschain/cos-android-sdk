@@ -7,7 +7,6 @@ option java_package = "io.contentos.android.sdk.prototype";
 
 import "prototype/type.proto";
 
-
 message follower_relation{
     account_name account = 1;
     account_name follower = 2;
@@ -55,12 +54,6 @@ message contract_id{
     string    cname = 2;
 }
 
-message contract_data_id{
-    account_name    owner   = 1;
-    string  cname = 2;
-    int32   pos = 3;                // crc-value of data
-}
-
 message reply_created_order{
     uint64 parent_id = 1;
     prototype.time_point_sec created = 2;
@@ -79,4 +72,9 @@ message reward_cashout_id {
 message user_trx_create_order {
     account_name  creator = 1;
     prototype.time_point_sec create_time = 2;
+}
+
+message stake_record {
+    account_name from = 1;
+    account_name to = 2;
 }

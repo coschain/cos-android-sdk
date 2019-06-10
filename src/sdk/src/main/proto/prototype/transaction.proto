@@ -26,6 +26,10 @@ message operation{
         contract_apply_operation op14 = 14;
         report_operation op15 = 15;
         convert_vesting_operation op16 = 16;
+        stake_operation op17 = 17;
+        un_stake_operation op18 = 18;
+        bp_update_operation op19 = 19;
+        account_update_operation op20 = 20;
     }
 }
 
@@ -42,37 +46,34 @@ message signed_transaction{
     signature_type signature = 2;
 }
 
-message operation_receipt_with_info{
+message operation_receipt_with_info {
     uint32 status = 1;
     uint64 gas_usage = 5;
     string vm_console = 6;
 }
 
-message operation_receipt{
+message transaction_receipt_with_info {
     uint32 status = 1;
+    uint64 net_usage = 2;
+    uint64 cpu_usage = 3;
+    string error_info = 4;
+    repeated operation_receipt_with_info op_results = 5;
 }
 
-message transaction_receipt{
-    uint32 status = 1;
-    uint64 total_gas_usage = 2;
-    repeated operation_receipt op_results = 3;
-}
-
-message transaction_receipt_with_info{
-    uint32 status = 1;
-    uint64 total_gas_usage = 2;
-    string error_info = 3;
-    repeated operation_receipt_with_info op_results = 4;
-}
-
-message estimate_trx_result{
+message transaction_wrapper_with_info {
     signed_transaction sig_trx = 1;
     transaction_receipt_with_info receipt = 2;
 }
 
-message transaction_wrapper{
+message transaction_receipt {
+    uint32 status = 1;
+    uint64 net_usage = 2;
+    uint64 cpu_usage = 3;
+}
+
+message transaction_wrapper {
     signed_transaction sig_trx = 1;
-    transaction_receipt invoice = 2;
+    transaction_receipt receipt = 2;
 }
 
 // block
@@ -81,6 +82,7 @@ message block_header{
     time_point_sec timestamp = 2;
     account_name witness = 3;
     sha256 transaction_merkle_root = 4;
+    uint64 prev_apply_hash = 5;
 }
 
 message signed_block_header{

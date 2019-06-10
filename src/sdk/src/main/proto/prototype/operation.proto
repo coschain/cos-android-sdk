@@ -15,6 +15,11 @@ message account_create_operation{
     string json_metadata = 8;
 }
 
+message account_update_operation{
+    account_name owner = 1;
+    public_key_type pubkey = 2;
+}
+
 message transfer_operation{
     account_name from = 1;
     account_name to = 2;
@@ -41,6 +46,13 @@ message bp_register_operation{
     chain_properties  props = 5;
 }
 
+message bp_update_operation {
+    account_name owner = 1;
+    uint64 proposed_stamina_free = 2;
+    uint64 tps_expected = 3;
+    coin account_creation_fee = 4;
+}
+
 message bp_unregister_operation{
     account_name owner = 1;
 }
@@ -60,8 +72,9 @@ message follow_operation{
 message contract_deploy_operation{
     account_name owner = 1;
     string contract = 2;
-    string abi = 3;
+    bytes  abi = 3;
     bytes  code = 4;
+    bool upgradeable = 5;
 }
 
 message contract_apply_operation{
@@ -71,7 +84,6 @@ message contract_apply_operation{
     string method = 4;              // call which method
     string params = 5;              // param list, encoded as a single json string. e.g. '[]' or '["hello", 3, true]'
     coin   amount = 6;              // cos-coin send to the contract
-    coin   gas = 7;                 // max permit gas cost when apply
 }
 
 message internal_contract_apply_operation{
@@ -84,7 +96,6 @@ message internal_contract_apply_operation{
     string to_method = 7;               // method of the called contract
     bytes params = 8;                   // parameters encoded by internal serialization protocol between contract VM & host
     coin amount = 9;                    // amount of coins to transfer from caller contract to called contract
-    coin gas = 10;                      // max gas cost for this operation
 }
 
 message post_operation{
@@ -133,4 +144,16 @@ message report_operation {
 message convert_vesting_operation {
     account_name from = 1;
     vest amount = 2;
+}
+
+message stake_operation{
+    account_name from = 1;
+    account_name to = 2;
+    coin amount = 3;
+}
+
+message un_stake_operation{
+    account_name creditor = 1;
+    account_name debtor = 2;
+    coin amount = 3;
 }

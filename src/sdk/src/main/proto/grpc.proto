@@ -2,22 +2,18 @@ syntax = "proto3";
 
 package grpcpb;
 
-option go_package = "github.com/coschain/contentos-go/grpcpb";
+//option go_package = "github.com/coschain/contentos-go/grpcpb";
 option java_package = "io.contentos.android.sdk.rpc";
 
 import "prototype/type.proto";
 import "prototype/multi_id.proto";
 import "prototype/transaction.proto";
 
-
 service ApiService {
     rpc QueryTableContent (GetTableContentRequest) returns (TableContentResponse) {
     }
 
     rpc GetAccountByName (GetAccountByNameRequest) returns (AccountResponse) {
-    }
-
-    rpc GetAccountRewardByName (GetAccountRewardByNameRequest) returns (AccountRewardResponse) {
     }
 
     rpc GetAccountCashout (GetAccountCashoutRequest) returns (AccountCashoutResponse) {
@@ -49,9 +45,6 @@ service ApiService {
     }
 
     rpc GetChainState (NonParamsRequest) returns (GetChainStateResponse) {
-    }
-
-    rpc GetStatisticsInfo (NonParamsRequest) returns (GetStatResponse) {
     }
 
     rpc BroadcastTrx (BroadcastTrxRequest) returns (BroadcastTrxResponse) {
@@ -97,6 +90,19 @@ service ApiService {
     }
 
     rpc GetAccountListByCreTime (GetAccountListByCreTimeRequest) returns (GetAccountListResponse) {
+    }
+
+    rpc GetDailyStats (GetDailyStatsRequest) returns (GetDailyStatsResponse) {
+
+    }
+
+    rpc GetContractListByTime(GetContractListByTimeRequest) returns (GetContractListResponse) {
+    }
+
+    rpc GetWitnessListByVoteCount(GetWitnessListByVoteCountRequest) returns (GetWitnessListResponse) {
+    }
+
+    rpc GetPostListByVest(GetPostListByVestRequest) returns (GetPostListByVestResponse) {
     }
 }
 
@@ -158,6 +164,14 @@ message AccountInfo {
     uint32                                  following_count   = 9;
     uint32                                  trx_count        = 10;
     uint32                                  vote_power       = 11;
+    uint64                                  stamina_free_remain  = 12;
+    uint64                                  stamina_stake_remain  = 13;
+    uint64                                  stamina_max     = 14;
+    prototype.vest                          stake_vest      = 15;
+    prototype.vest                          withdraw_remains = 16;
+    prototype.vest                          withdraw_each_time = 17;
+    prototype.time_point_sec                next_withdraw_time =      18;
+    uint32                                  bp_vote_count = 19;
 }
 
 message AccountResponse {
@@ -209,14 +223,15 @@ message GetFollowCountByNameResponse {
 
 message WitnessResponse {
     prototype.account_name             owner                           = 1;
-    prototype.time_point_sec           created_time                    = 3;
-    string                             url                             = 4;
-    uint32                             last_confirmed_block_num        = 5;
-    uint32                             total_missed                    = 6;
-    uint64                             vote_count                      = 7;
-    prototype.public_key_type          signing_key                     = 8;
-    prototype.sha256                   last_work                       = 9;
-    uint32                             running_version                 = 2;
+    prototype.time_point_sec           created_time                    = 2;
+    string                             url                             = 3;
+    prototype.vest                     vote_count                      = 4;
+    prototype.public_key_type          signing_key                     = 5;
+    uint64                             proposed_stamina_free           = 6;
+    bool                               active                          = 7;
+    uint64                             tps_expected                    = 8;
+    prototype.coin                     account_create_fee              = 9;
+    repeated prototype.account_name    voter_list                      = 10;
 }
 
 message GetWitnessListRequest {
@@ -244,12 +259,12 @@ message PostResponse {
     repeated string                             tags                    =      18;
     repeated prototype.beneficiary_route_type   beneficiaries           =      19;
     uint64                                      vote_cnt                =      20;
-    uint64                                      weighted_vp             =      21 [jstype = JS_STRING];
+    string                                      weighted_vp             =      21 ;
     prototype.vest                              rewards                 =      22;
     prototype.vest                              dapp_rewards            =      23;
     uint64                                      cashout_interval        =      24;
-    prototype.vest                              global_rewards          =      25;
-    uint64                                      global_weighted_vp      =      26;
+    prototype.vest                              global_rewards          =      25 ;
+    string                                      global_weighted_vp      =      26 ;
 }
 
 message GetPostListByCreatedRequest {
@@ -286,10 +301,10 @@ message GetChainStateResponse {
     ChainState state = 1;
 }
 
-message GetStatResponse {
-    ChainState state = 1;
-    repeated int32 daily_trx_counts = 2;
-}
+//message GetStatResponse {
+//    ChainState state = 1;
+//    repeated int32 daily_trx_counts = 2;
+//}
 
 message BroadcastTrxRequest {
     prototype.signed_transaction transaction = 1;
@@ -297,7 +312,7 @@ message BroadcastTrxRequest {
 }
 
 message BroadcastTrxResponse {
-    prototype.transaction_receipt_with_info  invoice = 1;
+    prototype.transaction_receipt_with_info    invoice = 1;
     uint32                          status  = 2;
     string                          msg     = 3;
 }
@@ -450,7 +465,7 @@ message GetUserTrxListByTimeResponse {
 
 message VoterOfPost {
     prototype.account_name     account_name    = 1;
-    uint64                     weighted_vp     = 2 [jstype = JS_STRING];
+    string                     weighted_vp     = 2 ;
 
 }
 
@@ -492,4 +507,63 @@ message GetAccountListByCreTimeRequest {
     prototype.time_point_sec   end       = 2;
     AccountInfo  last_account = 3;
     uint32           limit     = 4;
+}
+
+message DailyStat {
+    uint64 date = 1;
+    string dapp = 2;
+    uint32 dau = 3;
+    uint32 dnu = 4;
+    uint32 trxs = 5;
+    uint64 amount = 6 [jstype = JS_STRING];
+    uint32 total_user_count = 7;
+}
+
+message GetDailyStatsRequest {
+    uint32 days = 1;
+    string dapp = 2;
+}
+
+message GetDailyStatsResponse {
+    repeated DailyStat stat = 1;
+}
+
+message ContractInfo {
+    prototype.account_name    owner = 1;
+    prototype.account_name    name  = 2;
+    prototype.time_point_sec  create_time = 3;
+    prototype.coin            balance = 4;
+    uint32                    apply_count = 5;
+    bool                      upgradeable = 6;
+
+}
+
+message GetContractListByTimeRequest {
+    prototype.time_point_sec  start = 1;
+    prototype.time_point_sec  end   = 2;
+    ContractInfo     last_contract = 3;
+    uint32           limit     = 4;
+}
+
+message GetContractListResponse {
+    repeated ContractInfo   contract_list = 1;
+}
+
+message GetWitnessListByVoteCountRequest {
+    prototype.vest   start   = 1;
+    prototype.vest   end     = 2;
+    WitnessResponse  last_witness = 3;
+    uint32           limit     = 4;
+}
+
+
+message GetPostListByVestRequest {
+    prototype.vest   start   = 1;
+    prototype.vest   end     = 2;
+    PostResponse     last_post = 3;
+    uint32           limit     = 4;
+}
+
+message GetPostListByVestResponse {
+    repeated PostResponse post_list = 1;
 }
