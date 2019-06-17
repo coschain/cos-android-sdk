@@ -35,6 +35,7 @@ Once `openKeyStore()` is called, you can import your Contentos accounts. For tho
 ```java
 String accountName = "sdktest";
 String privateKey = "4QMbCzf1GVD86UqngHPPX2HGSxU7tUuup2qirNS8JjiY3xKpWx";
+// String publicKey = "COS69PbSj5UqdyjxGBpT4TwskzYgcqKBLPfVjRR3cp8uXjzX5iEhm";
 wallet.addKey(accountName, privateKey);
 ```
 
