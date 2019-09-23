@@ -2,6 +2,7 @@ package io.contentos.android.sdk;
 
 import java.io.File;
 import java.util.List;
+import java.util.zip.CRC32;
 
 import io.contentos.android.sdk.keystore.KeyStore;
 import io.contentos.android.sdk.keystore.KeystoreAPI;
@@ -20,12 +21,12 @@ public final class Wallet extends RpcClient implements KeystoreAPI {
      * @param serverHost    server host
      * @param serverPort    server port
      */
-    public Wallet(String serverHost, int serverPort) {
+    public Wallet(String serverHost, int serverPort, String chainName) {
         super(ApiServiceGrpc.newBlockingStub(
                 ManagedChannelBuilder.forAddress(serverHost, serverPort)
                 .usePlaintext()
                 .userAgent("")
-                .build()));
+                .build()), chainName);
         channel = (ManagedChannel) service.getChannel();
     }
 

@@ -1,6 +1,9 @@
 package io.contentos.android.sdk.rpc;
 
 import com.google.protobuf.ByteString;
+
+import java.util.zip.CRC32;
+
 import io.contentos.android.sdk.prototype.MultiId;
 import io.contentos.android.sdk.prototype.Transaction.signed_transaction;
 import io.contentos.android.sdk.prototype.Type;
@@ -35,24 +38,28 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
     
     protected ApiServiceGrpc.ApiServiceBlockingStub service;
     protected String signingKey;
+    protected int chainId;
 
     /**
      * Create an instance of RPC client.
      * @param service       the gRPC service
      * @param signingKey    the signing private key for transactions
      */
-    public RpcClient(ApiServiceGrpc.ApiServiceBlockingStub service, String signingKey) {
+    public RpcClient(ApiServiceGrpc.ApiServiceBlockingStub service, String signingKey, String chainName) {
         super(new Transaction.Factory());
         this.service = service;
         this.signingKey = signingKey;
+        CRC32 crc = new CRC32();
+        crc.update(chainName.getBytes());
+        this.chainId = (int)crc.getValue();
     }
 
     /**
      * Create an instance of RPC client.
      * @param service the gRPC service
      */
-    public RpcClient(ApiServiceGrpc.ApiServiceBlockingStub service) {
-        this(service, null);
+    public RpcClient(ApiServiceGrpc.ApiServiceBlockingStub service, String chainName) {
+        this(service, null, chainName);
     }
     
     /**
@@ -298,7 +305,7 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
         if (key == null || key.length() == 0) {
             throw new RuntimeException("signing key not found");
         }
-        return broadcastTrx(trx.sign(key, 0), waitResult);
+        return broadcastTrx(trx.sign(key, this.chainId), waitResult);
     }
 
     /**
