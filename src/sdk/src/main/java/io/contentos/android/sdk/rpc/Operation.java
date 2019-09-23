@@ -63,13 +63,6 @@ public class Operation {
         Result bpRegister(String owner, String url, String desc, Type.public_key_type signKey, Type.chain_properties props);
 
         /**
-         * Process an operation of block-producer un-registration.
-         * @param owner     name of block-producer to unregister
-         * @return processing result
-         */
-        Result bpUnregister(String owner);
-
-        /**
          * Process an operation of block-producer voting.
          * @param voter     name of voter account
          * @param bp        name of block-producer account
@@ -80,13 +73,19 @@ public class Operation {
 
         /**
          * Process an operation of block-producer update.
-         * @param account               name of block-producer account
-         * @param proposedStaminaFree   proposed stamina free amount
-         * @param tpsExpected           expected tps
-         * @param accountCreationFee    account creation fee in tokens
+         * @param account   name of block-producer account
+         * @param props     updated properties of this block-producer, {@code null} means the default
          * @return processing result
          */
-        Result bpUpdate(String account, long proposedStaminaFree, long tpsExpected, long accountCreationFee);
+        Result bpUpdate(String account, Type.chain_properties props);
+
+        /**
+         * Process an operation of block-producer enabling.
+         * @param account   name of block-producer account
+         * @param cancel    true:disable, false:enable
+         * @return processing result
+         */
+        Result bpEnable(String account, boolean cancel);
 
         /**
          * Process an operation of article posting.
@@ -114,9 +113,10 @@ public class Operation {
          * Process an operation of follow-ship creation.
          * @param follower  name of follower account
          * @param followee  name of account being followed
+         * @param cancel    true: stop following, false: start following
          * @return processing result
          */
-        Result follow(String follower, String followee);
+        Result follow(String follower, String followee, boolean cancel);
 
         /**
          * Process an operation of article up-voting.
@@ -131,9 +131,10 @@ public class Operation {
          * @param from      name of token sender account
          * @param to        name of vesting receiver account
          * @param amount    number of tokens to convert
+         * @param memo      any memo text
          * @return processing result
          */
-        Result transferToVesting(String from, String to, long amount);
+        Result transferToVest(String from, String to, long amount, String memo);
 
         /**
          * Process an operation of smart contract deployment.
@@ -142,9 +143,11 @@ public class Operation {
          * @param abi        ABI of contract
          * @param code       code of contract
          * @param upgradable is this contract upgradable or not
+         * @param url        url related to this contract
+         * @param desc       description about this contract
          * @return processing result
          */
-        Result contractDeploy(String owner, String contract, String abi, byte[] code, boolean upgradable);
+        Result contractDeploy(String owner, String contract, String abi, byte[] code, boolean upgradable, String url, String desc);
 
         /**
          * Process an operation of smart contract calling.
@@ -164,7 +167,7 @@ public class Operation {
          * @param amount    number of vesting to convert
          * @return processing result
          */
-        Result convertVesting(String account, long amount);
+        Result convertVest(String account, long amount);
 
         /**
          * Process an operation of token staking.
@@ -183,6 +186,23 @@ public class Operation {
          * @return processing result
          */
         Result unStake(String creditor, String debtor, long amount);
+
+        /**
+         * Process an operation of buying gift tickets.
+         * @param account   name of buyer account
+         * @param amount    number of tickets to buy
+         * @return processing result
+         */
+        Result acquireTicket(String account, long amount);
+
+        /**
+         * Process an operation of voting for a post using gift tickets.
+         * @param account   name of voter account
+         * @param postId    id of the post
+         * @param amount    number of tickets
+         * @return processing result
+         */
+        Result voteByTicket(String account, long postId, long amount);
     }
 
     /**
@@ -240,16 +260,16 @@ public class Operation {
             return filterResult(upstreamFactory.newInstance().bpRegister(owner, url, desc, signKey, props));
         }
 
-        public DstType bpUnregister(String owner){
-            return filterResult(upstreamFactory.newInstance().bpUnregister(owner));
-        }
-
         public DstType bpVote(String voter, String bp, boolean cancel){
             return filterResult(upstreamFactory.newInstance().bpVote(voter, bp, cancel));
         }
 
-        public DstType bpUpdate(String account, long proposedStaminaFree, long tpsExpected, long accountCreationFee){
-            return filterResult(upstreamFactory.newInstance().bpUpdate(account, proposedStaminaFree, tpsExpected, accountCreationFee));
+        public DstType bpUpdate(String account, Type.chain_properties props){
+            return filterResult(upstreamFactory.newInstance().bpUpdate(account, props));
+        }
+
+        public DstType bpEnable(String account, boolean cancel){
+            return filterResult(upstreamFactory.newInstance().bpEnable(account, cancel));
         }
 
         public DstType post(String author, String title, String content, List<String> tags, Map<String, Integer> beneficiaries){
@@ -260,28 +280,28 @@ public class Operation {
             return filterResult(upstreamFactory.newInstance().reply(postId, author, content, beneficiaries));
         }
 
-        public DstType follow(String follower, String followee){
-            return filterResult(upstreamFactory.newInstance().follow(follower, followee));
+        public DstType follow(String follower, String followee, boolean cancel){
+            return filterResult(upstreamFactory.newInstance().follow(follower, followee, cancel));
         }
 
         public DstType vote(String voter, long postId){
             return filterResult(upstreamFactory.newInstance().vote(voter, postId));
         }
 
-        public DstType transferToVesting(String from, String to, long amount){
-            return filterResult(upstreamFactory.newInstance().transferToVesting(from, to, amount));
+        public DstType transferToVest(String from, String to, long amount, String memo){
+            return filterResult(upstreamFactory.newInstance().transferToVest(from, to, amount, memo));
         }
 
-        public DstType contractDeploy(String owner, String contract, String abi, byte[] code, boolean upgradable){
-            return filterResult(upstreamFactory.newInstance().contractDeploy(owner, contract, abi, code, upgradable));
+        public DstType contractDeploy(String owner, String contract, String abi, byte[] code, boolean upgradable, String url, String desc){
+            return filterResult(upstreamFactory.newInstance().contractDeploy(owner, contract, abi, code, upgradable, url, desc));
         }
 
         public DstType contractApply(String caller, String owner, String contract, String method, String params, long coins){
             return filterResult(upstreamFactory.newInstance().contractApply(caller, owner, contract, method, params, coins));
         }
 
-        public DstType convertVesting(String account, long amount){
-            return filterResult(upstreamFactory.newInstance().convertVesting(account, amount));
+        public DstType convertVest(String account, long amount){
+            return filterResult(upstreamFactory.newInstance().convertVest(account, amount));
         }
 
         public DstType stake(String from, String to, long amount){
@@ -290,6 +310,14 @@ public class Operation {
 
         public DstType unStake(String creditor, String debtor, long amount){
             return filterResult(upstreamFactory.newInstance().unStake(creditor, debtor, amount));
+        }
+
+        public DstType acquireTicket(String account, long amount) {
+            return filterResult(upstreamFactory.newInstance().acquireTicket(account, amount));
+        }
+
+        public DstType voteByTicket(String account, long postId, long amount) {
+            return filterResult(upstreamFactory.newInstance().voteByTicket(account, postId, amount));
         }
     }
 
@@ -305,7 +333,7 @@ public class Operation {
                             .setCreator(Type.account_name.newBuilder().setValue(creator))
                             .setNewAccountName(Type.account_name.newBuilder().setValue(newAccount))
                             .setFee(Type.coin.newBuilder().setValue(fee))
-                            .setOwner(publicKey)
+                            .setPubKey(publicKey)
                             .setJsonMetadata(jsonMeta)
             ).build();
         }
@@ -314,7 +342,7 @@ public class Operation {
             return operation.newBuilder().setOp20(
                     account_update_operation.newBuilder()
                             .setOwner(Type.account_name.newBuilder().setValue(account))
-                            .setPubkey(publicKey)
+                            .setPubKey(publicKey)
             ).build();
         }
 
@@ -328,12 +356,21 @@ public class Operation {
             ).build();
         }
 
+        private Type.chain_properties defaultChainProps() {
+            return Type.chain_properties.newBuilder()
+                    .setAccountCreationFee(Type.coin.newBuilder().setValue(100000L))
+                    .setStaminaFree(100000)
+                    .setTpsExpected(100)
+                    .setTopNAcquireFreeToken(500)
+                    .setEpochDuration(60 * 60 * 24 * 7)
+                    .setPerTicketPrice(Type.coin.newBuilder().setValue(10000000000000L))
+                    .setPerTicketWeight(1)
+                    .build();
+        }
+
         public operation bpRegister(String owner, String url, String desc, Type.public_key_type signKey, Type.chain_properties props) {
             if (props == null) {
-                props = Type.chain_properties.newBuilder()
-                        .setAccountCreationFee(Type.coin.newBuilder().setValue(1))
-                        .setMaximumBlockSize(10 * 1024 * 1024)
-                        .build();
+                props = defaultChainProps();
             }
             return operation.newBuilder().setOp3(
                     bp_register_operation.newBuilder()
@@ -345,10 +382,11 @@ public class Operation {
             ).build();
         }
 
-        public operation bpUnregister(String owner) {
+        public operation bpEnable(String account, boolean cancel) {
             return operation.newBuilder().setOp4(
-                    bp_unregister_operation.newBuilder()
-                            .setOwner(Type.account_name.newBuilder().setValue(owner))
+                    bp_enable_operation.newBuilder()
+                            .setOwner(Type.account_name.newBuilder().setValue(account))
+                            .setCancel(cancel)
             ).build();
         }
 
@@ -356,18 +394,19 @@ public class Operation {
             return operation.newBuilder().setOp5(
                     bp_vote_operation.newBuilder()
                             .setVoter(Type.account_name.newBuilder().setValue(voter))
-                            .setWitness(Type.account_name.newBuilder().setValue(bp))
+                            .setBlockProducer(Type.account_name.newBuilder().setValue(bp))
                             .setCancel(cancel)
             ).build();
         }
 
-        public operation bpUpdate(String account, long proposedStaminaFree, long tpsExpected, long accountCreationFee){
+        public operation bpUpdate(String account, Type.chain_properties props){
+            if (props == null) {
+                props = defaultChainProps();
+            }
             return operation.newBuilder().setOp19(
                     bp_update_operation.newBuilder()
                             .setOwner(Type.account_name.newBuilder().setValue(account))
-                            .setProposedStaminaFree(proposedStaminaFree)
-                            .setTpsExpected(tpsExpected)
-                            .setAccountCreationFee(Type.coin.newBuilder().setValue(accountCreationFee))
+                            .setProps(props)
             ).build();
         }
 
@@ -406,11 +445,12 @@ public class Operation {
             return operation.newBuilder().setOp7(b).build();
         }
 
-        public operation follow(String follower, String followee) {
+        public operation follow(String follower, String followee, boolean cancel) {
             return operation.newBuilder().setOp8(
                     follow_operation.newBuilder()
                             .setAccount(Type.account_name.newBuilder().setValue(follower))
                             .setFAccount(Type.account_name.newBuilder().setValue(followee))
+                            .setCancel(cancel)
             ).build();
         }
 
@@ -422,16 +462,17 @@ public class Operation {
             ).build();
         }
 
-        public operation transferToVesting(String from, String to, long amount) {
+        public operation transferToVest(String from, String to, long amount, String memo) {
             return operation.newBuilder().setOp10(
-                    transfer_to_vesting_operation.newBuilder()
+                    transfer_to_vest_operation.newBuilder()
                             .setFrom(Type.account_name.newBuilder().setValue(from))
                             .setTo(Type.account_name.newBuilder().setValue(to))
                             .setAmount(Type.coin.newBuilder().setValue(amount).build())
+                            .setMemo(memo)
             ).build();
         }
 
-        public operation contractDeploy(String owner, String contract, String abi, byte[] code, boolean upgradable) {
+        public operation contractDeploy(String owner, String contract, String abi, byte[] code, boolean upgradable, String url, String desc) {
             return operation.newBuilder().setOp13(
                     contract_deploy_operation.newBuilder()
                             .setOwner(Type.account_name.newBuilder().setValue(owner))
@@ -439,6 +480,8 @@ public class Operation {
                             .setAbi(ByteString.copyFrom(Zlib.compressString(abi)))
                             .setCode(ByteString.copyFrom(Zlib.compress(code)))
                             .setUpgradeable(upgradable)
+                            .setUrl(url)
+                            .setDescribe(desc)
             ).build();
         }
 
@@ -454,9 +497,9 @@ public class Operation {
             ).build();
         }
 
-        public operation convertVesting(String account, long amount) {
+        public operation convertVest(String account, long amount) {
             return operation.newBuilder().setOp16(
-                    convert_vesting_operation.newBuilder()
+                    convert_vest_operation.newBuilder()
                             .setFrom(Type.account_name.newBuilder().setValue(account))
                             .setAmount(Type.vest.newBuilder().setValue(amount))
             ).build();
@@ -477,6 +520,23 @@ public class Operation {
                             .setCreditor(Type.account_name.newBuilder().setValue(creditor))
                             .setDebtor(Type.account_name.newBuilder().setValue(debtor))
                             .setAmount(Type.coin.newBuilder().setValue(amount))
+            ).build();
+        }
+
+        public operation  acquireTicket(String account, long amount) {
+            return operation.newBuilder().setOp21(
+                    acquire_ticket_operation.newBuilder()
+                            .setAccount(Type.account_name.newBuilder().setValue(account))
+                            .setCount(amount)
+            ).build();
+        }
+
+        public operation  voteByTicket(String account, long postId, long amount) {
+            return operation.newBuilder().setOp22(
+                    vote_by_ticket_operation.newBuilder()
+                            .setAccount(Type.account_name.newBuilder().setValue(account))
+                            .setIdx(postId)
+                            .setCount(amount)
             ).build();
         }
 
