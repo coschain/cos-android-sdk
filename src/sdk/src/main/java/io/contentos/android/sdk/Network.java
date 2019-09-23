@@ -1,5 +1,7 @@
 package io.contentos.android.sdk;
 
+import java.util.Random;
+
 public class Network {
     private final String host;
     private final int port;
@@ -15,5 +17,12 @@ public class Network {
         return new Wallet(this.host, this.port, this.name);
     }
 
-    public static final Network Main = new Network("mainnode.contentos.io", 8888, "main");
+    private static final String[] mainNodes = {
+            "34.207.44.234",
+            "34.206.192.70",
+    };
+    public static final Network Main = new Network(
+            mainNodes[new Random().nextInt(mainNodes.length)],
+            8888,
+            "main");
 }
