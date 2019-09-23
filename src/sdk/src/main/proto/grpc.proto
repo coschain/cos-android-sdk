@@ -16,13 +16,6 @@ service ApiService {
     rpc GetAccountByName (GetAccountByNameRequest) returns (AccountResponse) {
     }
 
-    rpc GetAccountCashout (GetAccountCashoutRequest) returns (AccountCashoutResponse) {
-    }
-
-    rpc GetBlockCashout (GetBlockCashoutRequest) returns (BlockCashoutResponse) {
-
-    }
-
     rpc GetFollowerListByName (GetFollowerListByNameRequest) returns (GetFollowerListByNameResponse) {
     }
 
@@ -32,7 +25,7 @@ service ApiService {
     rpc GetFollowCountByName (GetFollowCountByNameRequest) returns (GetFollowCountByNameResponse) {
     }
 
-    rpc GetWitnessList (GetWitnessListRequest) returns (GetWitnessListResponse) {
+    rpc GetBlockProducerList (GetBlockProducerListRequest) returns (GetBlockProducerListResponse) {
     }
 
     rpc GetPostListByCreated (GetPostListByCreatedRequest) returns (GetPostListByCreatedResponse) {
@@ -99,10 +92,37 @@ service ApiService {
     rpc GetContractListByTime(GetContractListByTimeRequest) returns (GetContractListResponse) {
     }
 
-    rpc GetWitnessListByVoteCount(GetWitnessListByVoteCountRequest) returns (GetWitnessListResponse) {
+    rpc GetBlockProducerListByVoteCount(GetBlockProducerListByVoteCountRequest) returns (GetBlockProducerListResponse) {
     }
 
     rpc GetPostListByVest(GetPostListByVestRequest) returns (GetPostListByVestResponse) {
+    }
+
+    rpc EstimateStamina(EsimateRequest) returns (EsimateResponse) {
+    }
+
+    rpc GetNodeNeighbours (NonParamsRequest) returns (GetNodeNeighboursResponse) {
+    }
+
+    rpc GetMyStakers (GetMyStakerListByNameRequest) returns (GetMyStakerListByNameResponse) {
+    }
+
+    rpc GetMyStakes (GetMyStakeListByNameRequest) returns (GetMyStakeListByNameResponse) {
+    }
+
+    rpc GetNodeRunningVersion (NonParamsRequest) returns (GetNodeRunningVersionResponse) {
+    }
+    rpc GetAccountListByVest (GetAccountListByVestRequest) returns (GetAccountListResponse) {
+    }
+
+    rpc GetBlockProducerByName (GetBlockProducerByNameRequest) returns (BlockProducerResponse) {
+    }
+    rpc GetAccountByPubKey (GetAccountByPubKeyRequest) returns (AccountResponse) {
+    }
+    rpc GetBlockBFTInfoByNum (GetBlockBFTInfoByNumRequest) returns (GetBlockBFTInfoByNumResponse) {
+    }
+
+    rpc GetAppTableRecord (GetAppTableRecordRequest) returns (GetAppTableRecordResponse) {
     }
 }
 
@@ -121,8 +141,16 @@ message TableContentResponse {
     string table_content = 1;
 }
 
+message GetAccountByPubKeyRequest {
+    string public_key = 1;
+}
+
 message GetAccountByNameRequest {
     prototype.account_name account_name = 1;
+}
+
+message GetBlockProducerByNameRequest {
+    prototype.account_name bp_name = 1;
 }
 
 message GetAccountCashoutRequest{
@@ -158,7 +186,7 @@ message AccountInfo {
     prototype.vest                          vest            = 3;
     prototype.public_key_type               public_key      = 4;
     prototype.time_point_sec                created_time    = 5;
-    WitnessResponse                         witness         = 6;
+    BlockProducerResponse                   block_producer  = 6;
     uint32                                  post_count      = 7;
     uint32                                  follower_count    = 8;
     uint32                                  following_count   = 9;
@@ -167,11 +195,21 @@ message AccountInfo {
     uint64                                  stamina_free_remain  = 12;
     uint64                                  stamina_stake_remain  = 13;
     uint64                                  stamina_max     = 14;
-    prototype.vest                          stake_vest      = 15;
+    prototype.vest                          stake_vest_for_me = 15;
     prototype.vest                          withdraw_remains = 16;
-    prototype.vest                          withdraw_each_time = 17;
-    prototype.time_point_sec                next_withdraw_time =      18;
-    uint32                                  bp_vote_count = 19;
+    prototype.vest                          has_withdrawn = 17;
+    prototype.vest                          withdraw_each_time = 18;
+    prototype.time_point_sec                next_withdraw_time = 19;
+    prototype.time_point_sec                start_withdraw_time = 20;
+    uint32                                  bp_vote_count = 21;
+    uint32                                  reputation = 22;
+    string                                  reputation_memo = 23;
+    uint32                                  charged_ticket = 24;
+    uint32                                  free_ticket = 25;
+    uint32                                  freeze = 26;
+    string                                  freeze_memo = 27;
+    prototype.vest                          stake_vest_from_me = 28;
+    prototype.account_name                  voted_block_producer = 29;
 }
 
 message AccountResponse {
@@ -221,26 +259,30 @@ message GetFollowCountByNameResponse {
     uint32      fing_cnt    = 2;
 }
 
-message WitnessResponse {
+message BlockProducerResponse {
     prototype.account_name             owner                           = 1;
     prototype.time_point_sec           created_time                    = 2;
     string                             url                             = 3;
-    prototype.vest                     vote_count                      = 4;
+    prototype.bp_vest_id               bp_vest                         = 4;
     prototype.public_key_type          signing_key                     = 5;
     uint64                             proposed_stamina_free           = 6;
-    bool                               active                          = 7;
-    uint64                             tps_expected                    = 8;
-    prototype.coin                     account_create_fee              = 9;
-    repeated prototype.account_name    voter_list                      = 10;
+    uint64                             tps_expected                    = 7;
+    prototype.coin                     account_create_fee              = 8;
+    uint32                             top_n_acquire_free_token        = 9;
+    uint64                             ticket_flush_interval           = 10;
+    prototype.coin                     per_ticket_price                = 11;
+    uint64                             per_ticket_weight               = 12;
+    uint64                             voter_count                     = 13;
+    uint64                             gen_block_count                 = 14;
 }
 
-message GetWitnessListRequest {
+message GetBlockProducerListRequest {
     prototype.account_name      start = 1;
     uint32                      limit = 2;
 }
 
-message GetWitnessListResponse {
-    repeated WitnessResponse witness_list = 1;
+message GetBlockProducerListResponse {
+    repeated BlockProducerResponse block_producer_list = 1;
 }
 
 message PostResponse {
@@ -265,6 +307,9 @@ message PostResponse {
     uint64                                      cashout_interval        =      24;
     prototype.vest                              global_rewards          =      25 ;
     string                                      global_weighted_vp      =      26 ;
+    uint32                                      ticket                  =      27;
+    uint32                                      copyright               =      28;
+    string                                      copyright_memo          =      29;
 }
 
 message GetPostListByCreatedRequest {
@@ -301,6 +346,14 @@ message GetChainStateResponse {
     ChainState state = 1;
 }
 
+message GetNodeNeighboursResponse {
+    string peerlist = 1;
+}
+
+message GetNodeRunningVersionResponse {
+    string nodeVersion = 1;
+}
+
 //message GetStatResponse {
 //    ChainState state = 1;
 //    repeated int32 daily_trx_counts = 2;
@@ -309,12 +362,14 @@ message GetChainStateResponse {
 message BroadcastTrxRequest {
     prototype.signed_transaction transaction = 1;
     bool only_deliver = 2;
+    bool finality = 3;
 }
 
 message BroadcastTrxResponse {
     prototype.transaction_receipt_with_info    invoice = 1;
     uint32                          status  = 2;
     string                          msg     = 3;
+    bool                            finality = 4;
 }
 
 message NonParamsRequest {
@@ -343,7 +398,7 @@ message BlockInfo {
     prototype.time_point_sec     timestamp  = 1;
     uint64                       block_height = 2 [jstype = JS_STRING];
     uint32                       trx_count   = 3;
-    prototype.account_name       witness     = 4;
+    prototype.account_name       block_producer   = 4;
     prototype.sha256             block_id    = 5;
     prototype.sha256             pre_id      = 6;
     uint32                       block_size  = 7;
@@ -492,6 +547,8 @@ message GetContractInfoResponse {
     bool exist    = 1;
     string abi    = 2;
     bytes code    = 3;
+    string url    = 4;
+    string describe = 5;
 }
 
 message GetBlkIsIrreversibleByTxIdRequest {
@@ -549,10 +606,10 @@ message GetContractListResponse {
     repeated ContractInfo   contract_list = 1;
 }
 
-message GetWitnessListByVoteCountRequest {
+message GetBlockProducerListByVoteCountRequest {
     prototype.vest   start   = 1;
     prototype.vest   end     = 2;
-    WitnessResponse  last_witness = 3;
+    BlockProducerResponse  last_block_producer = 3;
     uint32           limit     = 4;
 }
 
@@ -566,4 +623,72 @@ message GetPostListByVestRequest {
 
 message GetPostListByVestResponse {
     repeated PostResponse post_list = 1;
+}
+
+message EsimateRequest {
+    prototype.signed_transaction transaction = 1;
+}
+
+message EsimateResponse {
+    prototype.transaction_receipt_with_info    invoice = 1;
+}
+
+message StakeInfo {
+    prototype.account_name account = 1;
+    prototype.vest stake_amount = 2;
+    uint64 stake_block_num = 3;
+}
+
+message GetMyStakerListByNameRequest {
+    prototype.stake_record_reverse    start = 1;
+    prototype.stake_record_reverse    end   = 2;
+    uint32                            limit = 3;
+}
+
+message GetMyStakerListByNameResponse {
+    repeated StakeInfo my_staker_list = 1;
+}
+
+message GetMyStakeListByNameRequest {
+    prototype.stake_record    start = 1;
+    prototype.stake_record    end   = 2;
+    uint32                    limit = 3;
+}
+
+message GetMyStakeListByNameResponse {
+    repeated StakeInfo my_stake_list = 1;
+
+}
+
+message GetAccountListByVestRequest {
+    prototype.vest   start     = 1;
+    prototype.vest   end       = 2;
+    AccountInfo  last_account = 3;
+    uint32           limit     = 4;
+}
+
+message GetBlockBFTInfoByNumRequest {
+    uint64      block_num = 1 [jstype = JS_STRING];
+}
+
+message BFTVoteInfo {
+    string   pub_key = 1;
+    bytes    signature = 2;
+}
+
+message GetBlockBFTInfoByNumResponse {
+    string   committer_pub_key = 1;
+    bytes    signature = 2;
+    repeated BFTVoteInfo  vote = 3;
+}
+
+message GetAppTableRecordRequest {
+    string  table_name = 1;
+    string  key = 2;
+}
+
+message GetAppTableRecordResponse {
+    bool    success = 1;
+    string  error_msg = 2;
+    string  record = 3;
 }

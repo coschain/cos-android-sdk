@@ -39,14 +39,19 @@ message voter_id{
     uint64          post_id = 2;
 }
 
-message bp_voter_id{
-    account_name    voter   = 1;
-    account_name    witness = 2;
+//message bp_voter_id{
+//    account_name    voter   = 1;
+//    account_name    block_producer = 2;
+//}
+
+message bp_vest_id {
+    bool               active = 1;
+    prototype.vest     vote_vest = 2;
 }
 
-message bp_witness_id{
-    account_name    voter   = 1;
-    account_name    witness = 2;
+message bp_block_producer_id{
+    account_name    block_producer = 1;
+    account_name    voter   = 2;
 }
 
 message contract_id{
@@ -77,4 +82,9 @@ message user_trx_create_order {
 message stake_record {
     account_name from = 1;
     account_name to = 2;
+}
+
+message stake_record_reverse {
+    account_name to = 1;
+    account_name from = 2;
 }

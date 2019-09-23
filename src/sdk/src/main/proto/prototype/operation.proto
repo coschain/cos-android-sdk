@@ -11,13 +11,13 @@ message account_create_operation{
     coin fee = 1;
     account_name creator = 2;
     account_name new_account_name = 3;
-    public_key_type owner = 4;
-    string json_metadata = 8;
+    public_key_type pub_key = 4;
+    string json_metadata = 5;
 }
 
 message account_update_operation{
     account_name owner = 1;
-    public_key_type pubkey = 2;
+    public_key_type pub_key = 2;
 }
 
 message transfer_operation{
@@ -27,15 +27,16 @@ message transfer_operation{
     string memo = 4;
 }
 
-message transfer_to_vesting_operation{
+message transfer_to_vest_operation{
     account_name from = 1;
     account_name to = 2;
     coin amount = 3;
+    string memo = 4;
 }
 
 message vote_operation{
     account_name voter = 1;
-    uint64 idx = 3 [jstype = JS_STRING];
+    uint64 idx = 2 [jstype = JS_STRING];
 }
 
 message bp_register_operation{
@@ -48,18 +49,17 @@ message bp_register_operation{
 
 message bp_update_operation {
     account_name owner = 1;
-    uint64 proposed_stamina_free = 2;
-    uint64 tps_expected = 3;
-    coin account_creation_fee = 4;
+    chain_properties  props = 2;
 }
 
-message bp_unregister_operation{
+message bp_enable_operation {
     account_name owner = 1;
+    bool cancel        = 2;
 }
 
 message bp_vote_operation{
     account_name voter = 1;
-    account_name witness = 2;
+    account_name block_producer = 2;
     bool cancel = 3;
 }
 
@@ -75,6 +75,8 @@ message contract_deploy_operation{
     bytes  abi = 3;
     bytes  code = 4;
     bool upgradeable = 5;
+    string url = 6;
+    string describe = 7;
 }
 
 message contract_apply_operation{
@@ -115,33 +117,33 @@ message reply_operation{
     repeated beneficiary_route_type beneficiaries = 6;
 }
 
-message claim_all_operation {
-    account_name account = 1;
-}
+//message claim_all_operation {
+//    account_name account = 1;
+//}
+//
+//message claim_operation {
+//    account_name account = 1;
+//    uint64 amount = 2;
+//}
+//
+//message report_operation {
+//    enum tag {
+//        CHILD_PORNOGRAPHY = 0;
+//        RACISM = 1;
+//        REACTIONARY = 2;
+//        PLAGIARISM = 3;
+//        SLANDER = 4;
+//        FALSE_PROPAGANDA = 5;
+//        PORNOGRAPHY = 6;
+//    }
+//    account_name reporter = 1;
+//    uint64 reported = 2;
+//    repeated tag report_tag = 3;
+//    bool is_arbitration = 4;
+//    bool is_approved = 5;
+//}
 
-message claim_operation {
-    account_name account = 1;
-    uint64 amount = 2;
-}
-
-message report_operation {
-    enum tag {
-        CHILD_PORNOGRAPHY = 0;
-        RACISM = 1;
-        REACTIONARY = 2;
-        PLAGIARISM = 3;
-        SLANDER = 4;
-        FALSE_PROPAGANDA = 5;
-        PORNOGRAPHY = 6;
-    }
-    account_name reporter = 1;
-    uint64 reported = 2;
-    repeated tag report_tag = 3;
-    bool is_arbitration = 4;
-    bool is_approved = 5;
-}
-
-message convert_vesting_operation {
+message convert_vest_operation {
     account_name from = 1;
     vest amount = 2;
 }
@@ -156,4 +158,15 @@ message un_stake_operation{
     account_name creditor = 1;
     account_name debtor = 2;
     coin amount = 3;
+}
+
+message acquire_ticket_operation {
+    account_name account = 1;
+    uint64 count = 2;
+}
+
+message vote_by_ticket_operation {
+    account_name account = 1;
+    uint64 idx = 2 [jstype = JS_STRING];
+    uint64 count = 3;
 }
