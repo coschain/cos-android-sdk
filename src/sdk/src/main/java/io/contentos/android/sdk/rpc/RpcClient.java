@@ -1,12 +1,12 @@
 package io.contentos.android.sdk.rpc;
 
 import com.google.protobuf.ByteString;
+import io.contentos.android.sdk.prototype.MultiId;
 import io.contentos.android.sdk.prototype.Transaction.signed_transaction;
 import io.contentos.android.sdk.prototype.Type;
 import io.contentos.android.sdk.rpc.Grpc.*;
 import io.contentos.android.sdk.prototype.MultiId.*;
 import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 
 /**
  * The RPC Client.
@@ -106,34 +106,6 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
         return service.getAccountByName(
                 GetAccountByNameRequest.newBuilder()
                         .setAccountName(accountName(accountName))
-                        .build()
-        );
-    }
-
-    /**
-     * Get reward to a specific account.
-     * @param accountName   the account
-     * @param postId        the post id rewards belong to
-     * @return reward vesting
-     */
-    public AccountCashoutResponse getAccountCashout(String accountName, long postId) {
-        return service.getAccountCashout(
-                GetAccountCashoutRequest.newBuilder()
-                        .setAccountName(accountName(accountName))
-                        .setPostId(postId)
-                        .build()
-        );
-    }
-
-    /**
-     * Get reward records of specific block.
-     * @param blockHeight the block height. e.g. block number
-     * @return list of reward records.
-     */
-    public BlockCashoutResponse getBlockCashout(long blockHeight) {
-        return service.getBlockCashout(
-                GetBlockCashoutRequest.newBuilder()
-                        .setBlockHeight(blockHeight)
                         .build()
         );
     }
@@ -240,9 +212,9 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
      * Get block producers.
      * @return list of block producers in ascending order of account names.
      */
-    public GetWitnessListResponse getWitnessList() {
-        return service.getWitnessList(
-                GetWitnessListRequest.newBuilder()
+    public GetBlockProducerListResponse getBlockProducerList() {
+        return service.getBlockProducerList(
+                GetBlockProducerListRequest.newBuilder()
                         .setLimit(1000000)
                         .build()
         );
@@ -781,35 +753,35 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
      * @param pageSize      maximum items in a page
      * @return block producer list in descending order of votes.
      */
-    public RpcResultPages<GetWitnessListResponse, Type.vest, WitnessResponse> getWitnessListByVoteCount(long startVest, long endVest, int pageSize) {
-        return new RpcResultPages<GetWitnessListResponse, Type.vest, WitnessResponse>(
+    public RpcResultPages<GetBlockProducerListResponse, Type.vest, BlockProducerResponse> getBlockProducerListByVoteCount(long startVest, long endVest, int pageSize) {
+        return new RpcResultPages<GetBlockProducerListResponse, Type.vest, BlockProducerResponse>(
                 Type.vest.newBuilder().setValue(endVest).build(),
                 Type.vest.newBuilder().setValue(startVest).build(),
                 pageSize
         ) {
             @Override
-            protected GetWitnessListResponse request(Type.vest start, Type.vest end, int count, WitnessResponse last) {
-                GetWitnessListByVoteCountRequest.Builder b = GetWitnessListByVoteCountRequest.newBuilder();
+            protected GetBlockProducerListResponse request(Type.vest start, Type.vest end, int count,BlockProducerResponse last) {
+                GetBlockProducerListByVoteCountRequest.Builder b = GetBlockProducerListByVoteCountRequest.newBuilder();
                 b.setStart(start).setEnd(end).setLimit(count);
                 if (last != null) {
-                    b.setLastWitness(last);
+                    b.setLastBlockProducer(last);
                 }
-                return service.getWitnessListByVoteCount(b.build());
+                return service.getBlockProducerListByVoteCount(b.build());
             }
 
             @Override
-            protected WitnessResponse getLastItem(GetWitnessListResponse resp) {
-                return isEmptyResponse(resp)? null : resp.getWitnessList(resp.getWitnessListCount() - 1);
+            protected BlockProducerResponse getLastItem(GetBlockProducerListResponse resp) {
+                return isEmptyResponse(resp)? null : resp.getBlockProducerList(resp.getBlockProducerListCount() - 1);
             }
 
             @Override
-            protected Type.vest keyOfValue(WitnessResponse value) {
-                return value.getVoteCount();
+            protected Type.vest keyOfValue(BlockProducerResponse value) {
+                return value.getBpVest().getVoteVest();
             }
 
             @Override
-            public boolean isEmptyResponse(GetWitnessListResponse resp) {
-                return resp == null || resp.getWitnessListCount() == 0;
+            public boolean isEmptyResponse(GetBlockProducerListResponse resp) {
+                return resp == null || resp.getBlockProducerListCount() == 0;
             }
         };
     }
@@ -854,6 +826,178 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
         };
     }
 
+    /**
+     * Estimate the net & cpu usage of given transaction.
+     * @param trx   the signed transaction
+     * @return estimation result
+     */
+    public EsimateResponse estimateStamina(signed_transaction trx) {
+        return service.estimateStamina(
+                EsimateRequest.newBuilder()
+                        .setTransaction(trx)
+                        .build()
+        );
+    }
+
+    /**
+     * Get peer list of server node.
+     * @return peer list of server node.
+     */
+    public GetNodeNeighboursResponse getNodeNeighbours() {
+        return service.getNodeNeighbours(
+                NonParamsRequest.getDefaultInstance()
+        );
+    }
+
+    /**
+     * Get software version of server node.
+     * @return software version of server node.
+     */
+    public GetNodeRunningVersionResponse getNodeRunningVersion() {
+        return service.getNodeRunningVersion(
+                NonParamsRequest.getDefaultInstance()
+        );
+    }
+
+    /**
+     * Get list of stakers of given account.
+     * @param account   the account name
+     * @param count     max number of stakers
+     * @return list of stakers
+     */
+    public GetMyStakerListByNameResponse getMyStakers(String account, int count) {
+        MultiId.stake_record_reverse start = MultiId.stake_record_reverse.newBuilder()
+                .setTo(accountName(account))
+                .setFrom(minAccountName)
+                .build();
+        MultiId.stake_record_reverse end = MultiId.stake_record_reverse.newBuilder()
+                .setTo(accountName(account))
+                .setFrom(maxAccountName)
+                .build();
+        return service.getMyStakers(
+                GetMyStakerListByNameRequest.newBuilder()
+                        .setLimit(count)
+                        .setStart(start)
+                        .setEnd(end)
+                        .build()
+        );
+    }
+
+    /**
+     * Get list of stakes of given account.
+     * @param account   the account name
+     * @param count     max number of stakes
+     * @return list of stakes
+     */
+    public GetMyStakeListByNameResponse getMyStakes(String account, int count) {
+        MultiId.stake_record start = MultiId.stake_record.newBuilder()
+                .setFrom(accountName(account))
+                .setTo(minAccountName)
+                .build();
+        MultiId.stake_record end = MultiId.stake_record.newBuilder()
+                .setFrom(accountName(account))
+                .setTo(maxAccountName)
+                .build();
+        return service.getMyStakes(
+                GetMyStakeListByNameRequest.newBuilder()
+                        .setLimit(count)
+                        .setStart(start)
+                        .setEnd(end)
+                        .build()
+        );
+    }
+
+    /**
+     * Get accounts whose vest is within a specific range.
+     * @param minVest    minimal vest, exclusive
+     * @param maxVest    maximum vest, inclusive
+     * @param pageSize   maximum items in a page
+     * @return account list in descending order of vest.
+     */
+    public RpcResultPages<GetAccountListResponse, Type.vest, AccountInfo> getAccountListByVest(long minVest, long maxVest, int pageSize) {
+        return new RpcResultPages<GetAccountListResponse, Type.vest, AccountInfo>(
+                Type.vest.newBuilder().setValue(maxVest).build(),
+                Type.vest.newBuilder().setValue(minVest).build(),
+                pageSize)
+        {
+            @Override
+            protected GetAccountListResponse request(Type.vest start, Type.vest end, int count, AccountInfo last) {
+                GetAccountListByVestRequest.Builder b = GetAccountListByVestRequest.newBuilder();
+                b.setStart(start).setEnd(end).setLimit(count);
+                if (last != null) {
+                    b.setLastAccount(last);
+                }
+                return service.getAccountListByVest(b.build());
+            }
+
+            @Override
+            protected AccountInfo getLastItem(GetAccountListResponse resp) {
+                return isEmptyResponse(resp)? null : resp.getList(resp.getListCount() - 1).getInfo();
+            }
+
+            @Override
+            protected Type.vest keyOfValue(AccountInfo value) {
+                return value.getVest();
+            }
+
+            @Override
+            public boolean isEmptyResponse(GetAccountListResponse resp) {
+                return resp == null || resp.getListCount() == 0;
+            }
+        };
+    }
+
+    /**
+     * Get account information of given public key.
+     * @param pubKeyWIF  public key in WIF encoding
+     * @return the account information.
+     */
+    public AccountResponse getAccountByPubKey(String pubKeyWIF) {
+        return service.getAccountByPubKey(GetAccountByPubKeyRequest.newBuilder().setPublicKey(pubKeyWIF).build());
+    }
+
+    /**
+     * Get block producer information based on its name.
+     * @param name  account name of block producer
+     * @return block producer information
+     */
+    public BlockProducerResponse getBlockProducerByName(String name) {
+        return service.getBlockProducerByName(
+                GetBlockProducerByNameRequest.newBuilder()
+                        .setBpName(accountName(name))
+                        .build()
+        );
+    }
+
+    /**
+     * Get block BFT information.
+     * @param blockNum  block number
+     * @return block BFT information.
+     */
+    public GetBlockBFTInfoByNumResponse getBlockBFTInfoByNum(long blockNum) {
+        return service.getBlockBFTInfoByNum(
+                GetBlockBFTInfoByNumRequest.newBuilder()
+                        .setBlockNum(blockNum)
+                        .build()
+        );
+    }
+
+    /**
+     * Get record from any app table.
+     * @param table     name of table
+     * @param keyJson   json encoded string of primary key
+     * @return table record matching the given key.
+     */
+    public GetAppTableRecordResponse getAppTableRecord(String table, String keyJson) {
+        return service.getAppTableRecord(
+                GetAppTableRecordRequest.newBuilder()
+                        .setTableName(table)
+                        .setKey(keyJson)
+                        .build()
+        );
+    }
+
+
     //
     // Helpers for cleaner codes
     //
@@ -868,4 +1012,7 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
     private static Type.account_name accountName(String name) {
         return Type.account_name.newBuilder().setValue(name).build();
     }
+
+    private static Type.account_name minAccountName = accountName("");
+    private static Type.account_name maxAccountName = accountName("zzzzzzzzzzzzzzzzz");
 }
