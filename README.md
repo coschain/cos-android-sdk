@@ -6,15 +6,11 @@ Android client library for Contentos blockchain.
 
 ### Create a wallet
 
-`Wallet` is the main entry of the library. 
+`Wallet` is the main entry of the library. To create a wallet for Contentos main-net,
 
 ```java
-Wallet wallet = new Wallet("18.233.234.27", 8888);
+Wallet wallet = Network.Main.wallet();
 ```
-
-The constructor needs host name and port of a Contentos blockchain node, which enabled its gRPC service. By talking with this server, a wallet can read various information of the chain and send user transactions.
-
-`Wallet` is thread safe.
 
 ### Open a keystore
 
@@ -30,16 +26,25 @@ If you pass a non-existent file to `openKeyStore()`, a new empty keystore file w
 
 ### Import accounts
 
-Once `openKeyStore()` is called, you can import your Contentos accounts. For those who haven't one yet, we offer a public testing account.
+Once `openKeyStore()` is called, you can import your Contentos accounts. There're 2 ways to import an account - directly import the private key, or import your mnemonic. A mnemonic is a text string containing 24 words. `Wallet` can derive the private key from mnemonic.
+
+#### Import private key
 
 ```java
 String accountName = "sdktest";
 String privateKey = "4QMbCzf1GVD86UqngHPPX2HGSxU7tUuup2qirNS8JjiY3xKpWx";
-// String publicKey = "COS69PbSj5UqdyjxGBpT4TwskzYgcqKBLPfVjRR3cp8uXjzX5iEhm";
 wallet.addKey(accountName, privateKey);
 ```
 
-If you have multiple accounts, just call `addKey()` repeatly to import them all. Imported accounts are permanently stored in the keystore file, you don't have to import them again next time the keystore is opened. 
+#### Import mnemonic
+
+```java
+String accountName = "sdktest";
+String mnemonic = "<24-word-text-string>";
+wallet.addKeyByMnemonic(accountName, mnemonic);
+```
+
+If you have multiple accounts, just call `addKey()` or `addKeyByMnemonic()` repeatly to import them all. Imported accounts are permanently stored in the keystore file, you don't have to import them again next time the keystore is opened. 
 
 You can also browse your accounts, query for private keys or remove accounts.
 
@@ -96,7 +101,8 @@ wallet.account("sdktest").accountCreate(
 	Key.publicKeyOf(WIF.toPrivateKey(privateKey)), // public key of new account
 	""             // json meta
 );
-
+// add the new account into wallet
+wallet.addKey(newAccount, privateKey);
 ```
 
 All supported kinds of transactions are listed in the [OperationProcessor](src/sdk/src/main/java/io/contentos/android/sdk/rpc/Operation.java) interface.
