@@ -12,10 +12,6 @@ import static org.junit.Assert.*;
 import static io.contentos.android.sdk.Utils.randomAccountName;
 
 public class WalletUnitTest {
-
-    private static final String serverHost = "18.233.234.27";
-    private static final int serverPort = 8888;
-
     private static final String keyStorePassword = "my password";
 
     private static final String testAccountPrivateKey = "4QMbCzf1GVD86UqngHPPX2HGSxU7tUuup2qirNS8JjiY3xKpWx";

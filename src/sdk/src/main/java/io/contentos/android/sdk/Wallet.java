@@ -4,8 +4,11 @@ import java.io.File;
 import java.util.List;
 import java.util.zip.CRC32;
 
+import io.contentos.android.sdk.crypto.Key;
+import io.contentos.android.sdk.encoding.WIF;
 import io.contentos.android.sdk.keystore.KeyStore;
 import io.contentos.android.sdk.keystore.KeystoreAPI;
+import io.contentos.android.sdk.prototype.Type;
 import io.contentos.android.sdk.rpc.ApiServiceGrpc;
 import io.contentos.android.sdk.rpc.RpcClient;
 import io.grpc.ManagedChannel;
@@ -75,6 +78,13 @@ public final class Wallet extends RpcClient implements KeystoreAPI {
             throw new RuntimeException("no open keystore");
         }
         keyStore.addKey(account, wifPrivateKey);
+    }
+
+    public synchronized void addKeyByMnemonic(String account, String mnemonic) {
+        if (keyStore == null) {
+            throw new RuntimeException("no open keystore");
+        }
+        keyStore.addKeyByMnemonic(account, mnemonic);
     }
 
     public synchronized void removeKey(String account) {

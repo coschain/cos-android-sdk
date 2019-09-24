@@ -18,6 +18,13 @@ public interface KeystoreAPI {
     void addKey(String account, String wifPrivateKey);
 
     /**
+     * Add an account and her mnemonic into keystore.
+     * @param account       name of account
+     * @param mnemonic      a 24-word mnemonic string to derive private key
+     */
+    void addKeyByMnemonic(String account, String mnemonic);
+
+    /**
      * Remove an account and her private key from keystore.
      * @param account   name of account
      */

@@ -16,6 +16,9 @@ import javax.crypto.SealedObject;
 import javax.crypto.spec.SecretKeySpec;
 
 import io.contentos.android.sdk.crypto.Hash;
+import io.contentos.android.sdk.crypto.Key;
+import io.contentos.android.sdk.encoding.WIF;
+import io.contentos.android.sdk.prototype.Type;
 
 public class KeyStore implements KeystoreAPI {
     private static final String CRYPTO_ALGORITHM = "AES";
@@ -56,6 +59,13 @@ public class KeyStore implements KeystoreAPI {
     }
 
     public synchronized void addKey(String account, String wifPrivateKey) {
+        keys.put(account, wifPrivateKey);
+        save();
+    }
+
+    public synchronized void addKeyByMnemonic(String account, String mnemonic) {
+        Type.private_key_type privateKey = Key.generateFromMnemonic(mnemonic);
+        String wifPrivateKey = WIF.fromPrivateKey(privateKey);
         keys.put(account, wifPrivateKey);
         save();
     }
