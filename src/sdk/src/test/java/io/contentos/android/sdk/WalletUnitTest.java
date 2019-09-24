@@ -34,7 +34,7 @@ public class WalletUnitTest {
     @Test
     public void wallet_isCorrect() {
         // create the wallet
-        Wallet wallet = new Wallet(serverHost, serverPort);
+        Wallet wallet = Network.Main.wallet();
 
         // open keystore
         wallet.openKeyStore(getKeyStoreFile(), keyStorePassword);
