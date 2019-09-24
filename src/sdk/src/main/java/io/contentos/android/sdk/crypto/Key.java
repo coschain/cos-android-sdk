@@ -286,26 +286,11 @@ public class Key {
     // return a N_Bytes-long byte array representing the given non-negative integer.
     // the byte array doesn't contain sign bit.
     private static byte[] uintBytes(BigInteger n) {
-        byte[] bytes = n.toByteArray();
-        if (bytes.length > N_Bytes) {
+        return Helper.uintBytes(n, N_Bytes);
+    }
 
-            //
-            // the integer is too long, cut leading bytes (most significant bytes)
-            //
-            // BigInteger.toByteArray() always outputs sign bit, so that it possibly returns a
-            // 33-byte-long byte array even if n is smaller than 2^256.
-            // e.g. n = 2^256 - 1, n.bitLength()==257 (256 value bits + 1 sign bit).
-            // n.toByteArray() is 33-byte-long coz 32 bytes is smaller than 257 bits.
-            //
-            bytes = Arrays.copyOfRange(bytes, bytes.length - N_Bytes, bytes.length);
-
-        } else if (bytes.length < N_Bytes) {
-
-            // the integer is short, add leading 0x00-bytes
-            byte[] b = bytes;
-            bytes = new byte[N_Bytes];
-            System.arraycopy(b, 0, bytes, N_Bytes - b.length, b.length);
-        }
-        return bytes;
+    public static Type.private_key_type generateFromMnemonic(String mnemonic) {
+        byte[] seed = BIP39.get_seed(mnemonic, "");
+        return BIP32.cos_private_key(seed);
     }
 }

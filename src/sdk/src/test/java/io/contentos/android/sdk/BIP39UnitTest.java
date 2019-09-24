@@ -1,9 +1,6 @@
 package io.contentos.android.sdk;
 
 import org.junit.Test;
-import org.spongycastle.crypto.digests.SHA512Digest;
-import org.spongycastle.crypto.macs.HMac;
-
 import static org.junit.Assert.*;
 import io.contentos.android.sdk.crypto.BIP39;
 import static io.contentos.android.sdk.Utils.hexToByteArray;
