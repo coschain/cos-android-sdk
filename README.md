@@ -28,11 +28,13 @@ If you pass a non-existent file to `openKeyStore()`, a new empty keystore file w
 
 Once `openKeyStore()` is called, you can import your Contentos accounts. There're 2 ways to import an account - directly import the private key, or import your mnemonic. A mnemonic is a text string containing 24 words. `Wallet` can derive the private key from mnemonic.
 
+When you create a new account on [official web wallet](https://wallet.contentos.io/), both the private key and mnemonic show on the page.
+
 #### Import private key
 
 ```java
 String accountName = "sdktest";
-String privateKey = "4QMbCzf1GVD86UqngHPPX2HGSxU7tUuup2qirNS8JjiY3xKpWx";
+String privateKey = "3diUftkv1rsSn45bTNBZgtaYbSstX9eHZfz3WGoX7r7UBsFgLV";
 wallet.addKey(accountName, privateKey);
 ```
 
@@ -40,7 +42,7 @@ wallet.addKey(accountName, privateKey);
 
 ```java
 String accountName = "sdktest";
-String mnemonic = "<24-word-text-string>";
+String mnemonic = "differ cabbage wasp giraffe question trumpet mirror slim portion soft mountain basket record top call reopen note mule guide north vibrant other coffee coconut";
 wallet.addKeyByMnemonic(accountName, mnemonic);
 ```
 
@@ -135,4 +137,10 @@ When a wallet is no longer needed, don't forget to close it.
 ```java
 wallet.close();
 ```
+
+
+
+## See Also
+
+[Play Around With Contracts](./play_around_with_contracts.md)
 
