@@ -39,6 +39,7 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
     protected ApiServiceGrpc.ApiServiceBlockingStub service;
     protected String signingKey;
     protected int chainId;
+    protected String chainName;
 
     /**
      * Create an instance of RPC client.
@@ -52,6 +53,7 @@ public class RpcClient extends Operation.BaseResultFilter<Transaction, Transacti
         CRC32 crc = new CRC32();
         crc.update(chainName.getBytes());
         this.chainId = (int)crc.getValue();
+        this.chainName = chainName;
     }
 
     /**

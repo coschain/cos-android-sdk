@@ -22,7 +22,7 @@ public class Utils {
     }
 
     static String randomAccountName() {
-        String alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
         Random r = new Random();
         r.setSeed(System.currentTimeMillis());
         StringBuilder b = new StringBuilder("ru");

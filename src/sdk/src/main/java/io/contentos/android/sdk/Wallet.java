@@ -59,7 +59,7 @@ public final class Wallet extends RpcClient implements KeystoreAPI {
      * @return RPC client.
      */
     public RpcClient account(String name) {
-        return new RpcClient(service, getKey(name));
+        return new RpcClient(service, getKey(name), chainName);
     }
 
     //
