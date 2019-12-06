@@ -14,13 +14,13 @@ public class Network {
     }
 
     public Wallet wallet() {
-        return new Wallet(this.host, this.port, this.name);
+        return new Wallet(this.host, this.port, this.name, false);
     }
 
     private static final String[] mainNodes = {
-            "34.207.44.234",
-            "34.206.192.70",
+            "grpc.contentos.io",
     };
+
     public static final Network Main = new Network(
             mainNodes[new Random().nextInt(mainNodes.length)],
             8888,

@@ -23,14 +23,29 @@ public final class Wallet extends RpcClient implements KeystoreAPI {
      * Wallet constructor.
      * @param serverHost    server host
      * @param serverPort    server port
+     * @param secure        use TLS or not
+     */
+    public Wallet(String serverHost, int serverPort, String chainName, boolean secure) {
+        super(ApiServiceGrpc.newBlockingStub(channelBuilder(serverHost, serverPort, secure).build()), chainName);
+        channel = (ManagedChannel) service.getChannel();
+    }
+
+    /**
+     * Wallet constructor.
+     * @param serverHost    server host
+     * @param serverPort    server port
      */
     public Wallet(String serverHost, int serverPort, String chainName) {
-        super(ApiServiceGrpc.newBlockingStub(
-                ManagedChannelBuilder.forAddress(serverHost, serverPort)
-                .usePlaintext()
-                .userAgent("")
-                .build()), chainName);
-        channel = (ManagedChannel) service.getChannel();
+        this(serverHost, serverPort, chainName, false);
+    }
+
+    private static ManagedChannelBuilder channelBuilder(String serverHost, int serverPort, boolean secure) {
+        ManagedChannelBuilder cb = ManagedChannelBuilder.forAddress(serverHost, serverPort)
+                .userAgent("");
+        if (!secure) {
+            cb = cb.usePlaintext();
+        }
+        return cb;
     }
 
     /**
